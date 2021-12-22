@@ -1,0 +1,184 @@
+---
+title: "Variation in tree swallow egg shape."
+author: 
+ - Conor C. Taff
+header-includes:
+  - \usepackage[font={footnotesize}, labelfont={bf}]{caption}
+  #- \usepackage{setspace}\doublespacing
+  #- \usepackage{lineno}\linenumbers
+fontsize: 12pt
+output: 
+  bookdown::pdf_document2:
+      number_sections: FALSE
+      toc: FALSE
+      extra_dependencies: ["flafter"]
+  bookdown::word_document2:
+      number_sections: FALSE
+      toc: FALSE
+      extra_dependcies: ["flafter"]
+  bookdown::html_document2:
+      number_sections: FALSE
+      toc: TRUE
+bibliography: references.bib
+csl: hormone-behavior.csl
+---
+
+
+```{r setup, echo = FALSE, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+pacman::p_load(tidyverse, rptR)
+```
+
+```{r load-data, echo = FALSE, warning = FALSE, message = FALSE, fig.width = 7, fig.height = 5, fig.cap = "Morphospace of tree swallow egg shape from all measured eggs. Ellipse indicates the region containing 95% of eggs."}
+d_egg <- read.delim(here::here("1_raw_data/data_by_egg.txt"))
+
+ggplot(data = d_egg, mapping = aes(x = A, y = E)) +
+  geom_point(size = 0.7) + xlim(-0.02, 0.505) + ylim(0.07, 0.75) +
+  xlab("Asymmetry") + ylab("Ellipticity") +
+  stat_ellipse()
+```
+
+
+
+```{r mother-reg, echo = FALSE, warning = FALSE, message = FALSE, fig.height = 4, fig.width = 8, fig.cap = "Average egg asymmetry (A) and ellipticity (B) of recruited female tree swallows banded in our population and that of their previously measured mothers."}
+
+d_bird <- d_egg %>%
+  group_by(fband) %>%
+  summarise(n = n(), mu_A = mean(A), mu_E = mean(E), mu_L = mean(L), mu_T = mean(T), mu_len = mean(len_IJ),
+            mu_wid = mean(wid_IJ)) %>%
+  plyr::join(d_egg[, c("fband", "gen_mother")], match = "first", type = "left") 
+
+d_recruit <- d_bird %>%
+  filter(is.na(gen_mother) == FALSE) 
+colnames(d_recruit)[1] <- "recr_band"
+colnames(d_recruit)[9] <- "fband"
+d_bird2 <- d_bird[, 1:8]
+colnames(d_bird2) <- paste(colnames(d_bird2), "moth", sep = "_")
+colnames(d_bird2)[1] <- "fband"
+d_recruit2 <- plyr::join(d_recruit, d_bird2, "fband")
+
+          p1 <- ggplot(d_recruit2, mapping = aes(x = mu_A, y = mu_A_moth)) +
+            geom_point(col = "black", alpha = 0.6) + 
+            geom_smooth(method = "lm", color = "coral3", fill = "coral3") +
+            xlab("Average egg asymmetry") + ylab("Mother's average egg asymmetry") +
+            theme_bw() +
+            theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+                  axis.title = element_text(size = 14)) +
+            annotate(geom = "text", label = "A", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 8)
+
+          p2 <- ggplot(d_recruit2, mapping = aes(x = mu_E, y = mu_E_moth)) +
+            geom_point(col = "black", alpha = 0.6) + 
+            geom_smooth(method = "lm", color = "coral3", fill = "coral3") +
+            xlab("Average egg ellipticity") + ylab("Mother's average egg ellipticity") +
+            theme_bw() +
+            theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+                  axis.title = element_text(size = 14)) +
+            annotate(geom = "text", label = "B", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 8)
+          
+          ggpubr::ggarrange(p1, p2)
+
+  
+```
+
+```{r echo = FALSE}
+# summarize by year
+  d_eggn <- d_egg %>%
+    group_by(year, unit_box, fband) %>%
+    summarise(mu_A = mean(A), mu_E = mean(E), n = n(), epy = mean(epy_in_nest), sd_A = sd(A), sd_E = sd(E), wpy = mean(wpy_in_nest), knwn = mean(num_pat_knwn))
+  d_eggn$pc_epy <- d_eggn$epy / d_eggn$knwn
+  #plot(d_eggn$pc_epy, d_eggn$sd_A)
+  
+
+```
+
+
+# INTRODUCTION
+
+
+
+# METHODS
+
+
+# RESULTS
+
+All aspects of egg shape are highly repeatable within females, both overall and when comparing between years. 
+
+Lots of variation between females in their egg shape.
+
+Aspects of egg shape and size are correlated with each other, but only loosely.
+
+Age is not related to egg shape, but older females do lay larger eggs, though effect is very small. Check if this is longitudinal change or selective disappearance.
+
+
+```{r btwn-year, echo = FALSE, message = FALSE, warning = FALSE, fig.height = 4, fig.width = 8, fig.cap = "Average asymmetry (A) and ellipticity (B) for females that had egg shape measurements in consecutive years."}
+
+# wrangle data to make wide then long version with repeated year observations matched up
+          d_egg2 <- d_egg[, c("unit_box", "year", "A", "E", "len_IJ", "wid_IJ", "fband")]
+          egg_wide2 <- d_egg2 %>%
+              group_by(fband, year) %>%
+              summarize(A = mean(A, na.rm = TRUE), E = mean(E, na.rm = TRUE), 
+                        len_IJ = mean(len_IJ, na.rm = TRUE), wid_IJ = mean(wid_IJ, na.rm = TRUE),  year = mean(year)) %>%
+              pivot_wider(names_from = year, values_from = c(A, E, len_IJ, wid_IJ))
+          
+          eggx <- data.frame(fband = rep(egg_wide2$fband, 2),
+                             ellip1 = c(egg_wide2$E_2019, egg_wide2$E_2020),
+                             ellip2 = c(egg_wide2$E_2020, egg_wide2$E_2021),
+                             asym1 = c(egg_wide2$A_2019, egg_wide2$A_2020),
+                             asym2 = c(egg_wide2$A_2020, egg_wide2$A_2021))
+          eggx <- na.omit(eggx)
+ 
+# Make two panel plot for asymmetry and ellipticity                   
+          p1 <- ggplot(eggx, mapping = aes(x = asym1, y = asym2)) +
+            geom_point(col = "black", alpha = 0.6) + 
+            geom_smooth(method = "lm", color = "coral3", fill = "coral3") +
+            xlab("Asymmetry year 1") + ylab("Asymmetry year 2") +
+            theme_bw() +
+            theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+                  axis.title = element_text(size = 14)) +
+            annotate(geom = "text", label = "A", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 8)
+          
+          p2 <- ggplot(eggx, mapping = aes(x = ellip1, y = ellip2)) +
+            geom_point(col = "black", alpha = 0.6) + 
+            geom_smooth(method = "lm", color = "coral3", fill = "coral3") +
+            xlab("Ellipticity year 1") + ylab("Ellipticity year 2") +
+            theme_bw() +
+            theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+                  axis.title = element_text(size = 14)) +
+            annotate(geom = "text", label = "B", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 8)
+          
+          ggpubr::ggarrange(p1, p2)
+
+# old version of these plots ----
+        # ggplot(egg_wide2, mapping = aes(x = A_2019, y = A_2020)) +
+        #   geom_point(col = "orange") + xlab("Asymmetry year 1") + ylab("Asymmetry year 2") +
+        #   geom_smooth(method = "lm", color = "orange", fill = "orange") +
+        #   geom_point(color = "slateblue", mapping = aes(x = A_2020, y = A_2021)) +
+        #   geom_smooth(method = "lm", color = "slateblue", fill = "slateblue", mapping = aes(x = A_2020, y = A_2021)) +
+        #   theme_bw()
+        # 
+        # ggplot(egg_wide2, mapping = aes(x = E_2019, y = E_2020)) +
+        #   geom_point(col = "orange") + xlab("Ellipticity year 1") + ylab("Ellipticity year 2") +
+        #   geom_smooth(method = "lm", color = "orange", fill = "orange") +
+        #   geom_point(color = "slateblue", mapping = aes(x = E_2020, y = E_2021)) +
+        #   geom_smooth(method = "lm", color = "slateblue", fill = "slateblue", mapping = aes(x = E_2020, y = E_2021)) +
+        #   theme_bw()
+        # 
+        # ggplot(egg_wide2, mapping = aes(x = len_IJ_2019, y = len_IJ_2020)) +
+        #   geom_point(col = "orange") + xlab("Egg length year 1") + ylab("Egg length year 2") +
+        #   geom_smooth(method = "lm", color = "orange", fill = "orange") +
+        #   geom_point(color = "slateblue", mapping = aes(x = len_IJ_2020, y = len_IJ_2021)) +
+        #   geom_smooth(method = "lm", color = "slateblue", fill = "slateblue", mapping = aes(x = len_IJ_2020, y = len_IJ_2021)) +
+        #   theme_bw()
+        # 
+        # ggplot(egg_wide2, mapping = aes(x = wid_IJ_2019, y = wid_IJ_2020)) +
+        #   geom_point(col = "orange") + xlab("Egg width year 1") + ylab("Egg width year 2") +
+        #   geom_smooth(method = "lm", color = "orange", fill = "orange") +
+        #   geom_point(color = "slateblue", mapping = aes(x = wid_IJ_2020, y = wid_IJ_2021)) +
+        #   geom_smooth(method = "lm", color = "slateblue", fill = "slateblue", mapping = aes(x = wid_IJ_2020, y = wid_IJ_2021)) +
+        #   theme_bw() + 
+        #   coord_cartesian(ylim = c(13.5, 15.5), xlim = c(13, 15.5))
+
+```
+
+
+# DISCUSSION

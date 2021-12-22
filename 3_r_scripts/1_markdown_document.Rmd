@@ -1,6 +1,6 @@
 ---
-title: "Vitousek Analysis Guide"
-author: "Sabrina McNew & Conor Taff"
+title: "Tree Swallow Egg Shape Variation"
+author: "Conor Taff"
 date: "Last Updated: `r format(Sys.time(), '%B %d %Y at %H:%M')`"
 output: 
   html_document:
@@ -8,143 +8,243 @@ output:
     toc_float: true
     theme: cerulean
     code_folding: hide
+bibliography: references.bib
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(knitr)
-library(dplyr)
-library(ggplot2)
-library(here)
-library(sjPlot)
+pacman::p_load(tidyverse, rptR)
 ```
 
-## Basic Project Workflow
+## Motivation
 
-There is no single right way to keep an organized and reproducible project directory. This is just one set of recommendations of a strategy that works for us and is at least a good starting place. 
+We had seen Cassie Stoddard's 2017 Science paper on variation in avian egg shape across a huge range of species [@stoddard17]. She measured anywhere from just a few up to a few hundred eggs from each species using a custon MatLab program from museum pictures. While there are some full clutches measured, all of the analyses are based on species mean values rather than any comparison of multiple eggs produced by the same individual. She ends up concluding that the most variation in egg shape (albeit, not that large a % of variation) is explained by flight distances and time spent flying. The striking figure from the paper is figure 1 that shows the full variation of egg shape in morphospace plotted as the degree of asymmetry (pointiness on one end vs round on the other) vs. ellipticity (elongation). Here is the figure from her paper: 
 
-1. Make a clear plan for what will constitute a distinct 'project' and what data are needed for that project. It's easy to jump right into data analysis, but it really saves time down the road to have all the raw data organized first. Which data tables will be needed and which columns will each table need to have? Adding more data later is of course possible and sometimes unavoidable, but it can make it hard to stay organized! 
+![](F1.large.jpg)\
 
-2. Put together those data sets. For tree swallow data, this will likely involve compiling some data from different places and from the database. In an ideal world, this data would be as 'raw' as possible, but our 'raw' form data is often already summarized to some extent (e.g., feeding rates from rfids rather than all the raw rfid files). Save these raw data files as tab delimited text or comma separated value files. **Make sure your data are tidy!!** If you aren't sure what that means you can find lots of guides to tidy data online.
 
-3. Go to your GitHub account and make a new repository. Give it a descriptive name that is not too long. You can also use this repository as a template to start your new project by either forking it or by clicking the 'template' button that will start a new repository with it's own name but keep all the structure and files associated with this repository, then you can edit as needed for your new project. If you use this as a template, several of the steps listed below will already be done for you.
+In the figure, each species is one point, but as we were doing cross fosters of eggs in 2019, we were noticing that there seemed to be a huge amount of variation in egg shape between different tree swallows and that it seemed to span a lot of the variation in Cassie's paper. Just for fun, we started taking photos of each full clutch of eggs from 2019 & 2020 and I got in touch with Cassie to get her `eggxtractor` MatLab code running. Since our photos have a scale bar, I also measured the length and width at the longest/widest point. I haven't formally calculated volume from those measurements, but they should be good proxies for overall volume. So now we have measures for a bunch of eggs from the same female in a clutch and also some females with egg shape measurements from multiple years. We can easily look at how much variation there is and how consistent individual females are in the shape of their eggs.
 
-4. Go to your repository. Click the green 'code' button and copy the link to clone the https repository. [Note that the first time you are setting GitHub & RStudio on your computer there may be some extra steps. See links to getting started below.]
+## Tree Swallow Egg Data
 
-5. Open RStudio, choose to start a new project. Choose 'version control' and 'Git'. Put in the url you copied from your repository. Choose a folder for your project to live in on your local machine and give the project directory a name (using the repo name works fine!). 
+At this point, I've measured egg shape as described above for 940 eggs from 185 nests and 159 different females. While there were experiments in these years, all the treatments took place after incubation had started, so this is essentially just a large observational dataset.
 
-6. Now the project is on your machine and you can start making changes before pusing them back up to GitHub! Before starting analysis, I'd recommend making the following folder structure as a general rule (of course different projects might have different requirements). In this template project, all of these folders have been made already. 
+The first thing I wanted to do is just to recreate exactly the plot that is shown above from Cassie's comparative study. I've tried to do that here and have set the x and y limits as close as possible to her plot to make it easy to compare.
 
-* **0_manuscript**: Store word/text documents when you start writing the manuscript. 
-* **1_raw_data**: Store your starting raw data. Never modify this folder contents in code.
-* **2_modified_data**: Store new data objects created by your code if needed.
-* **3_r_scripts**: Store R scripts and R Markdown code
-* **4_output_figures**: Store any figure outputs that you want to save as individual files.
-* **5_other_outputs**: Store things like tables or more complicated outputs. 
-* **9_supporting_files**: Store older files (e.g., an excel file used to make your starting data).
-* **README.md**: Created by GitHub. Text file created by GitHub. Good place to use as a 'lab notebook'.
-* **Project**: The R project. All your code will use relative path names to the folders above. 
+```{r warning = FALSE, messages = FALSE, fig.width = 6, fig.height = 3.789473}
+d_egg <- read.delim(here::here("1_raw_data/data_by_egg.txt"))
 
-7. Open the project and make a new R script and a new markdown document. Save them into the '3_r_scripts'
-directory. Give them short, meaningful names. If you will have multiple scripts that need to be run in order, starting the file names with numbers will keep them all in order. For all of your files, think hard about using a consistent, logical naming scheme. Breaking up your code into different shorter scripts (e.g. cleaning/preprocessing, modeling, complicated plots etc.) can be helpful if you find yourself getting lost in your code. 
+ggplot(data = d_egg, mapping = aes(x = A, y = E)) +
+  geom_point(size = 0.7) + xlim(-0.02, 0.505) + ylim(0.07, 0.75) +
+  xlab("Asymmetry") + ylab("Ellipticity")
 
-8. Start your coding and analysis! As you create or read objects, store them into the appropriate folders above. For more complicated analysis you might have subfolders within some of the above or additional folders not listed here.
+d_bird <- d_egg %>%
+  group_by(fband) %>%
+  summarise(n = n(), mu_A = mean(A), mu_E = mean(E), mu_L = mean(L), mu_T = mean(T), mu_len = mean(len_IJ),
+            mu_wid = mean(wid_IJ)) %>%
+  plyr::join(d_egg[, c("fband", "gen_mother")], match = "first", type = "left") 
 
-9. Using the 'Git' panel in RStudio. You can commit your changes and push them back up to GitHub (with a note about what you changed). It's also good practice to 'Pull' your project down from GitHub each time you start a new session to make sure you have the up to date version (this is most important if you are collaborating with other people who might have made changes between your sessions, if you forget in your own session it's usually no big deal). You can commit your changes as often as you like. Maybe each time you finish a session working in R, or each time you are about to delete or modify a different section. Each time you commit will be a point that you can return to using version control on Git if you need to go back to that point later.
+d_recruit <- d_bird %>%
+  filter(is.na(gen_mother) == FALSE) 
+colnames(d_recruit)[1] <- "recr_band"
+colnames(d_recruit)[9] <- "fband"
+d_bird2 <- d_bird[, 1:8]
+colnames(d_bird2) <- paste(colnames(d_bird2), "moth", sep = "_")
+colnames(d_bird2)[1] <- "fband"
+d_recruit2 <- plyr::join(d_recruit, d_bird2, "fband")
 
-10. As a general rule, we often write out code first in an organized and well annotated R script, and then migrate the right chunks of that code into a Markdown dowcument that puts together explanation, code, figures, and interpretation into a nice output format. There are a bunch of suggestions for organizing the code itself in the R script included here. 
+ggplot(d_recruit2, mapping = aes(x = mu_wid_moth, y = mu_wid)) +
+  geom_point(color = "slateblue") +
+  geom_smooth(color = "coral3", fill = "coral3", method = "lm") +
+  theme_bw()
 
-11. The goal for following this workflow is all of the parts that go into a project (paper) are stored together in a single folder (repository) that is complete and sufficient to reproduce everything. This should make it a lot easier to upload data and code when a paper is accepted and to share contents with other people.
-
-## Creating a Markdown File
-
-The big benefit of Markdown as opposed to just using R scripts is that it is much easier to intersperse text, code, and output in a way that is readable. That makes it great for summarizing your project in a way that is good for sharing with collaborators (or your future self). The code does run slower than through a script though and if you are writing long scripts it can be a bit more of a pain to organize the R scripts into chunks for markdown. For that reason it's often easiest to have both or to work first in an r script with notes and relevant sections saved and summarized in Markdown. You can still organize the code in a similar way (loading packages and data in the first chunks, etc) as suggested in the R script template in this repository. 
-
-### Markdown Styles
-
-You can customize the output of Markdown in a lot of different ways using the header at the top and commands for each code chunk (html or pdf, table of contents, colors, etc). The settings above give a nice html template with code folding (visible but only on a click) and a floating table of contents, but there are lots of guides showing how to change these things. You can even include citations and use reference managers to ultimately export into word. Because you can embed code within paragraphs, it would be possible to create an entire reproducible *manuscript* in Markdown that would automatically update as you change numbers in tables etc (though that might be a goal for down the road!).
-
-Here is how you embed a new figure created in Markdown. I'm installing the Palmer Penguins package to plot with. This package has been suggested as a good alternative to the `iris` dataset that is often used in R tutorials because of RA Fisher's association with that dataset and with horribly racist eugenics...plus penguins are cooler than flowers.
-
-```{r cars, warning = FALSE, message = FALSE}
-# Create a simple plot in markdown
-  #install.packages("palmerpenguins")
-  library(palmerpenguins)
-  penguins <- palmerpenguins::penguins
-  ggplot(penguins, aes( x = bill_length_mm, y = bill_depth_mm)) +
-    geom_point(aes (color = species)) + 
-    scale_color_manual(values = c("darkorange", "darkorchid", "cyan4")) + theme_classic()
+  
 ```
 
-You can of course do a huge amount of customization of the plotting appearance and labels, but that is the subject for a different tutorial.
+This really matches our intuition from looking at eggs in the field!! There is just a huge amount of variation. The single site egg measures from tree swallows span almost all of the variation seen in Cassie's paper. This raises a lot of other questions. Are tree swallows unusually variable? Would we see geographic variation in tree swallow populations across latitudes that have different migration distances?
 
-### Saved Figures in Markdown
+## Repeatability Within a Clutch
 
-You can also include figures or tables generated in a script in your Markdown summary file by referencing the saved file in your project directory like this (assuming the png/jpg/tiff is saved in the same directory as your markdown script):
+One other question we can address right away is repeatability of egg shape within a clutch. In most cases we have 4-8 eggs measured from each clutch. Unfortunately, we don't have laying order for these eggs, though we could add that in future years.
 
-![](hero_figure.png)\
+As a first step, I'm just repeating the figure above but instead of each point being an egg each point will now be a nest mean with error bars along ellipticity and asymmetry. This isn't strictly a test, but is a good way to visualize how much spread there is within a nest.
 
-That figure was made in the example '1_main_script.R' that goes along with this repository. This could be useful if you run some analyses that take a long time in your R script and want to include just the output figure or table in your markdown summary. You can also display figures from a code chunk. With most of these things in R there are many different ways to do the same things and if you figure out a technique that works well go ahead and use it!
+```{r warning = FALSE, message = FALSE, fig.width = 6, fig.height = 3.789473}
+  egg_sum <- d_egg %>%
+    group_by(uby) %>%
+    summarize(asym = mean(A), ellip = mean(E), a_sd = sd(A) / sqrt(n()), e_sd = sd(E) / sqrt(n()))
 
-### Saved Tables in Markdown
+    ggplot(data = egg_sum, mapping = aes(x = asym, y = ellip)) + 
+      geom_point(size = 0.7) + xlim(-0.02, 0.505) + ylim(0.07, 0.75) +
+      xlab("Asymmetry") + ylab("Ellipticity") +
+      geom_linerange(data = egg_sum, mapping = aes(x = asym, ymin = ellip - a_sd, ymax = ellip + a_sd, width = 0.1)) +
+      geom_linerange(data = egg_sum, mapping = aes(y = ellip, xmin = asym - e_sd, xmax = asym + e_sd, width = 0.1))
 
-You can also produce nice tables in Markdown. There are various different ways to do this, but one example given here is to save your table using the `tab_model` function from `sjPlot` and then just load the table directly into markdown. This method works really well for linear models (but doesn't work if you want to output your markdown file as a pdf). You could also do the table construction directly in markdown if that makes more sense for your project.
-
-```{r}
-m <- readRDS(here::here("5_other_outputs/hero_table.rds"))
-m
 ```
 
+Averaging across the clutch does reduce some of the overall spread of egg shape from those really unusual eggs that were far out, but there is still a pretty big cloud of egg shapes that covers the species means for many species on Cassie's list. You can also see from the error bars (+/- SE) that there is definitely some grouping of nests, though there is so much overlap in the middle that it's hard to tell the nests apart visually. 
 
-### Coding Style
+Next I'm just running repeatability tests using the `rptR` package separately for asymmetry, ellipticity, width, and length [@rptr]. I'm running the unadjusted repeatability models just as a simple start.
 
-Pick a consistent coding and annotation style and stick with it!! Try to be disciplined. It will make it much easier for you and collaborators to read your code. Think about things like snake_case or ~~CamelCase~~ (edit by Sabrina: 
-snake_case is Style Guide Approved; edit by Conor: I *used* to use CamelCase and `.` a lot as a separator in names, but I agree snake_case with underscores is easier to read and I always avoid `.` now too, but the most important thing is being consistent, when you switch back and forth between capitals and lowercase it can really slow you down trying to remember your object and column names), indentations and spaces, object names, etc. See the link below to the tidyverse style guide.
+```{r warning = FALSE, message = FALSE, include = FALSE}
+r_asymmetry <- rptGaussian(A ~ 1 + (1|uby), grname = "uby", data = d_egg, nboot = 500)
+r_ellip <- rptGaussian(E ~ 1 + (1|uby), grname = "uby", data = d_egg, nboot = 500)
+r_len <- rptGaussian(len_IJ ~ 1 + (1|uby), grname = "uby", data = d_egg, nboot = 500)
+r_wid <- rptGaussian(wid_IJ ~ 1 + (1|uby), grname = "uby", data = d_egg, nboot = 500)
+```
 
-## Useful Resources
+**Asymmetry:** repeatability = `r round(r_asymmetry$R[1], 2)`; CI = `r round(r_asymmetry$CI_emp[1], 2)` to `r round(r_asymmetry$CI_emp[2], 2)`; P = `r round(r_asymmetry$P[1], 5)` 
 
-The internet is full of resources for learning about R and a lot are very specific. This is a very incomplete list of resources that we can add to for things we found particularly helpful in getting set up. These links are focused on how to get started and keep your projects organized and reproducible and not on using code or packages for specific purposes (since that is a huge topic!).
+**Ellipticity:** repeatability = `r round(r_ellip$R[1], 2)`; CI = `r round(r_ellip$CI_emp[1], 2)` to `r round(r_ellip$CI_emp[2], 2)`; P = `r round(r_ellip$P[1], 5)` 
 
-### Github & RStudio
+**Length:** repeatability = `r round(r_len$R[1], 2)`; CI = `r round(r_len$CI_emp[1], 2)` to `r round(r_len$CI_emp[2], 2)`; P = `r round(r_len$P[1], 5)` 
 
-https://happygitwithr.com/
+**Width:** repeatability = `r round(r_wid$R[1], 2)`; CI = `r round(r_wid$CI_emp[1], 2)` to `r round(r_wid$CI_emp[2], 2)`; P = `r round(r_wid$P[1], 5)` 
 
-### R Markdown
+So there is significant repeatability within a clutch for all of the measures. Width has the lowest repeatability, then asymmetry (which presumably is being directly influenced by width). I think this actually kind of matches up with some of the biomechanics of egg deposition that Cassie describes in her paper. There are potentially some interesting things to look at here with respect to skipped laying days or weather/resources available. I might predict from Cassie's paper that eggs layed after a skip would be wider since theys pend longer in the oviduct.
 
-https://rstudio.com/wp-content/uploads/2015/02/rmarkdown-cheatsheet.pdf
+## Repeatability Between Years
 
-### Project Oriented Workflow
+Next, I wanted to take a look at nests where the same female had eggs measured in both years. The sample size gets a lot smaller here, but it's still enough to get an idea of what is going on. I'm first plotting year one vs. year 2 measurements just to get a visual of the correlation, then running repeatability estimates again as above.
 
-https://www.tidyverse.org/blog/2017/12/workflow-vs-script/
+```{r btwn-year message = FALSE, warning = FALSE, fig.height = 4, fig.width = 4, fig.show = "hold"}
+d_egg2 <- d_egg[, c("unit_box", "year", "A", "E", "len_IJ", "wid_IJ", "fband")]
+egg_wide2 <- d_egg2 %>%
+    group_by(fband, year) %>%
+    summarize(A = mean(A, na.rm = TRUE), E = mean(E, na.rm = TRUE), 
+              len_IJ = mean(len_IJ, na.rm = TRUE), wid_IJ = mean(wid_IJ, na.rm = TRUE),  year = mean(year)) %>%
+    pivot_wider(names_from = year, values_from = c(A, E, len_IJ, wid_IJ))
 
-### Coding Style and Annotation
+eggx <- data.frame(fband = rep(egg_wide2$fband, 2),
+                   ellip1 = c(egg_wide2$E_2019, egg_wide2$E_2020),
+                   ellip2 = c(egg_wide2$E_2020, egg_wide2$E_2021),
+                   asym1 = c(egg_wide2$A_2019, egg_wide2$A_2020),
+                   asym2 = c(egg_wide2$A_2020, egg_wide2$A_2021))
+eggx <- na.omit(eggx)
 
-https://style.tidyverse.org/index.html
+p1 <- ggplot(eggx, mapping = aes(x = asym1, y = asym2)) +
+  geom_point(col = "black", alpha = 0.6) + 
+  geom_smooth(method = "lm", color = "coral3", fill = "coral3") +
+  xlab("Asymmetry year 1") + ylab("Asymmetry year 2") +
+  theme_bw() +
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+        axis.title = element_text(size = 14)) +
+  annotate(geom = "text", label = "A", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 8)
 
-### Tidy Data and R For Data Science (R4DS)
+p2 <- ggplot(eggx, mapping = aes(x = ellip1, y = ellip2)) +
+  geom_point(col = "black", alpha = 0.6) + 
+  geom_smooth(method = "lm", color = "coral3", fill = "coral3") +
+  xlab("Ellipticity year 1") + ylab("Ellipticity year 2") +
+  theme_bw() +
+  theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+        axis.title = element_text(size = 14)) +
+  annotate(geom = "text", label = "B", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 8)
 
-> "Happy families are all alike; every unhappy family is unhappy in its own way." - Leo Tolstoy 
+ggpubr::ggarrange(p1, p2)
 
-> "Tidy datasets are all alike, but every messy dataset is messy in its own way." - Hadley Wickham
+# ggplot(egg_wide2, mapping = aes(x = A_2019, y = A_2020)) +
+#   geom_point(col = "orange") + xlab("Asymmetry year 1") + ylab("Asymmetry year 2") +
+#   geom_smooth(method = "lm", color = "orange", fill = "orange") +
+#   geom_point(color = "slateblue", mapping = aes(x = A_2020, y = A_2021)) +
+#   geom_smooth(method = "lm", color = "slateblue", fill = "slateblue", mapping = aes(x = A_2020, y = A_2021)) +
+#   theme_bw()
+# 
+# ggplot(egg_wide2, mapping = aes(x = E_2019, y = E_2020)) +
+#   geom_point(col = "orange") + xlab("Ellipticity year 1") + ylab("Ellipticity year 2") +
+#   geom_smooth(method = "lm", color = "orange", fill = "orange") +
+#   geom_point(color = "slateblue", mapping = aes(x = E_2020, y = E_2021)) +
+#   geom_smooth(method = "lm", color = "slateblue", fill = "slateblue", mapping = aes(x = E_2020, y = E_2021)) +
+#   theme_bw()
+# 
+# ggplot(egg_wide2, mapping = aes(x = len_IJ_2019, y = len_IJ_2020)) +
+#   geom_point(col = "orange") + xlab("Egg length year 1") + ylab("Egg length year 2") +
+#   geom_smooth(method = "lm", color = "orange", fill = "orange") +
+#   geom_point(color = "slateblue", mapping = aes(x = len_IJ_2020, y = len_IJ_2021)) +
+#   geom_smooth(method = "lm", color = "slateblue", fill = "slateblue", mapping = aes(x = len_IJ_2020, y = len_IJ_2021)) +
+#   theme_bw()
+# 
+# ggplot(egg_wide2, mapping = aes(x = wid_IJ_2019, y = wid_IJ_2020)) +
+#   geom_point(col = "orange") + xlab("Egg width year 1") + ylab("Egg width year 2") +
+#   geom_smooth(method = "lm", color = "orange", fill = "orange") +
+#   geom_point(color = "slateblue", mapping = aes(x = wid_IJ_2020, y = wid_IJ_2021)) +
+#   geom_smooth(method = "lm", color = "slateblue", fill = "slateblue", mapping = aes(x = wid_IJ_2020, y = wid_IJ_2021)) +
+#   theme_bw() + 
+#   coord_cartesian(ylim = c(13.5, 15.5), xlim = c(13, 15.5))
 
-The R4DS free book is a great resource for many of the issues discussed here, but definitely spend some time understanding the tidy data chapter. Keeping data tidy makes it very easy to move to longer or wider formats using `pivot_longer` or `pivot_wider` without having to resort to any kind of manual editing or copy pasting in excel. Ideally your analysis starts with a small number of tidy data frames and all subsequent steps are coded to proceed from those original data with no manual modifications or selections.
+```
 
-https://r4ds.had.co.nz/tidy-data.html
+These cross year comparisons match up really well with the within-year variability. Basically, asymmetry, ellipticity, and length seem to be very similar even when measured a year apart on a different nest, but egg width is not similar a year later.
 
-### How to Name your Files
-The names of your files should be 
-1. Machine readable 
-2. Human readable 
-2. Sortable 
+Here are the actual repeatability measures for each of them:
 
-For more information please see: 
-https://speakerdeck.com/jennybc/how-to-name-files
 
-## Ending your document
+```{r warning = FALSE, message = FALSE, include = FALSE}
+d_egg2 <- d_egg[, c("unit_box", "year", "A", "E", "len_IJ", "wid_IJ", "fband")]
+egg_wide2 <- d_egg2 %>%
+    group_by(fband, year) %>%
+    summarize(A = mean(A, na.rm = TRUE), E = mean(E, na.rm = TRUE), 
+              len_IJ = mean(len_IJ, na.rm = TRUE), wid_IJ = mean(wid_IJ, na.rm = TRUE),  year = mean(year))
 
-I've started to try to always end my R Markdown summaries by printing the session info for your R environment. That way the versions of all of your packages and the list of any you have loaded will be preserved with the output. The goal is that with this info someone else should be able to take your entire directory of folders, configure their R session with the right packages (annoying but possible) and then reproduce everything exactly as you have it in your final version on their own computer without the need for any additional files and all using relative path names.
+
+r_asymmetry <- rptGaussian(A ~ 1 + (1|fband), grname = "fband", data = egg_wide2, nboot = 500)
+r_ellip <- rptGaussian(E ~ 1 + (1|fband), grname = "fband", data = egg_wide2, nboot = 500)
+r_len <- rptGaussian(len_IJ ~ 1 + (1|fband), grname = "fband", data = egg_wide2, nboot = 500)
+r_wid <- rptGaussian(wid_IJ ~ 1 + (1|fband), grname = "fband", data = egg_wide2, nboot = 500)
+```
+
+**Asymmetry:** repeatability = `r round(r_asymmetry$R[1], 2)`; CI = `r round(r_asymmetry$CI_emp[1], 2)` to `r round(r_asymmetry$CI_emp[2], 2)`; P = `r round(r_asymmetry$P[1], 5)` 
+
+**Ellipticity:** repeatability = `r round(r_ellip$R[1], 2)`; CI = `r round(r_ellip$CI_emp[1], 2)` to `r round(r_ellip$CI_emp[2], 2)`; P = `r round(r_ellip$P[1], 5)` 
+
+**Length:** repeatability = `r round(r_len$R[1], 2)`; CI = `r round(r_len$CI_emp[1], 2)` to `r round(r_len$CI_emp[2], 2)`; P = `r round(r_len$P[1], 5)` 
+
+**Width:** repeatability = `r round(r_wid$R[1], 2)`; CI = `r round(r_wid$CI_emp[1], 2)` to `r round(r_wid$CI_emp[2], 2)`; P = `r round(r_wid$P[1], 5)` 
+
+So just like above, asymmetry, ellipticity, and length are reasonably repeatable across years, but width is not. I'm not sure about the p-values here, I think I need to increase and run permutation tests to get more accurate ones but it runs very slowly so focus more on the confidence intervals for now.
+
+## Pair Plots
+
+Just as a last section here I wanted to plot the four different egg shape measures against each other, because they obviously are not independent (e.g., all else bing equal, increasing width usually will increase asymmetry). 
+
+```{r message = FALSE, warning = FALSE, fig.height = 2.5, fig.width = 2.5, fig.show = "hold"}
+ggplot(d_egg, mapping = aes(x = A, y = E)) +
+  geom_point(col = "coral3", size = .5, alpha = 0.4) + xlab("Asymmetry") + ylab("Ellipticity") +
+  geom_smooth(method = "lm")
+
+ggplot(d_egg, mapping = aes(x = A, y = len_IJ)) +
+  geom_point(col = "coral3", size = .5, alpha = 0.4) + xlab("Asymmetry") + ylab("Egg Length") +
+  geom_smooth(method = "lm")
+
+ggplot(d_egg, mapping = aes(x = A, y = wid_IJ)) +
+  geom_point(col = "coral3", size = .5, alpha = 0.4) + xlab("Asymmetry") + ylab("Egg Width") +
+  geom_smooth(method = "lm")
+
+ggplot(d_egg, mapping = aes(x = E, y = len_IJ)) +
+  geom_point(col = "coral3", size = .5, alpha = 0.4) + xlab("Ellipticity") + ylab("Egg Length") +
+  geom_smooth(method = "lm")
+
+ggplot(d_egg, mapping = aes(x = E, y = wid_IJ)) +
+  geom_point(col = "coral3", size = .5, alpha = 0.4) + xlab("Ellipticity") + ylab("Egg Width") +
+  geom_smooth(method = "lm")
+
+ggplot(d_egg, mapping = aes(x = len_IJ, y = wid_IJ)) +
+  geom_point(col = "coral3", size = .5, alpha = 0.4) + xlab("Egg Length") + ylab("Egg Width") +
+  geom_smooth(method = "lm")
+
+```
+
+## Adding in Geography
+
+There are lots of different things that we could look at with these data just in Ithaca, but it seems like one really promising way forward would be to look at egg shape variation within and between populations from across the tree swallow range or between the different close relatives. Using the GOLO pictures would be awesome for this.
+
+- Do they have some kind of a scale bar in the photo? If not they can still be used to measure ellipticity and asymmetry but not length and width (though if the distance to camera is always exactly the same maybe it could still be measured).
+
+## R Session Info
+
+Here I'm just printing the version of R and packages that I used in this analysis for the sake of reproducibility.
 
 ```{r}
 sessionInfo()
 ```
 
+## Bibliography
