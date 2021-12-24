@@ -2,6 +2,9 @@
 title: "Variation in tree swallow egg shape."
 author: 
  - Conor C. Taff
+ - Thomas A. Ryan
+ - Anyone else?
+ - Maren N. Vitousek
 header-includes:
   - \usepackage[font={footnotesize}, labelfont={bf}]{caption}
   #- \usepackage{setspace}\doublespacing
@@ -24,18 +27,330 @@ csl: hormone-behavior.csl
 ---
 
 
+\newpage
+
 ```{r setup, echo = FALSE, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-pacman::p_load(tidyverse, rptR)
+pacman::p_load(tidyverse, rptR, DHARMa, lme4, sjPlot, corrplot, Hmisc, xtable)
 ```
 
-```{r load-data, echo = FALSE, warning = FALSE, message = FALSE, fig.width = 7, fig.height = 5, fig.cap = "Morphospace of tree swallow egg shape from all measured eggs. Ellipse indicates the region containing 95% of eggs."}
-d_egg <- read.delim(here::here("1_raw_data/data_by_egg.txt"))
+```{r load-data, echo = FALSE, warning = FALSE, message = FALSE}
+# Load the egg data
+  d_egg <- read.delim(here::here("1_raw_data/data_by_egg.txt"))
 
-ggplot(data = d_egg, mapping = aes(x = A, y = E)) +
-  geom_point(size = 0.7) + xlim(-0.02, 0.505) + ylim(0.07, 0.75) +
-  xlab("Asymmetry") + ylab("Ellipticity") +
-  stat_ellipse()
+# This is just saved for plotting the mean egg shape 
+  d_egg_mu <- d_egg %>%
+    summarise(Amu = mean(na.omit(A)), Emu = mean(na.omit(E)))
+
+# This is a subset of only egg shapes that come from control nests for looking at nestling fates
+  d_control <- subset(d_egg, d_egg$nest_exp != "Color_Stress" &
+                      d_egg$nest_exp != "Light" &
+                      d_egg$nest_exp != "CortDose" &
+                      d_egg$nest_exp != "Carryover" & 
+                      d_egg$nest_exp != "Cold_Snap")
+
+# Load cassie stoddard's egg data
+          sp_egg <- read.delim(here::here("1_raw_data/stoddard_data.txt"))
+          
+# wrangling in a different format
+    # summarize by year
+      d_eggn <- d_egg %>%
+        group_by(year, unit_box, fband) %>%
+        summarise(mu_A = mean(A), mu_E = mean(E), n = n(), epy = mean(epy_in_nest), sd_A = sd(A), sd_E = sd(E), wpy = mean(wpy_in_nest), knwn = mean(num_pat_knwn))
+      d_eggn$pc_epy <- d_eggn$epy / d_eggn$knwn
+      #plot(d_eggn$pc_epy, d_eggn$sd_A)
+```
+
+
+
+*Keywords:*
+
+# INTRODUCTION
+
+
+
+What is the level of analysis. 
+
+Stoddard: big cross species but uses species mean values, what about variation?
+
+Birkhead & Montgomerie: focused on particular taxa, characterized by testing mechanisms by which egg shapes are optimal and comparison between close species, still doesn't capture within species or within individual variation
+
+Biological variation is hierarchically organized. Explanations and hypotheses that apply at one level need not apply at another, but ultimately variation at species level is the product of processes that play out within individuals and within species, because these levels provide the variation that can be shaped to produce larger scale patterns. Understanding those patterns is potentially helpful for resolving differences in understanding of egg shape evolution.
+
+Few papers link variation in egg shape to individual females characteristics or repeatedly measure eggs laid by the same females over time. 
+
+Important for thinking about maternal effects: lots of work looking at egg weight or hormone deposition, but how constrained are individuals by their own anatomy?
+
+# METHODS
+
+We studied tree swallows breeding near Ithaca, New York from April to July of 2019 to 2021. Tree swallows at this site have been studied continuously since 1984 and we followed well established protocols for general monitoring of breeding activity [@vitousek2018; @winkler2020]. Briefly, we checked all nest boxes every other day during the breeding season to record the timing of the onset of nest building activity, the initiation and completion of egg laying, the timing of hatching and fledging, and the fate of nestlings. This schedule also allowed us to compile accurate information on clutch size and the number of eggs that hatched at each nest, but we did not have information on the laying order of eggs within a nest.
+
+For this study, we visited each nest during the first week of incubation and photographed eggs to measure size and shape (example photograph in Figure S1). During the years of study, many nests at these sites were subjects of a variety of experiments focused on manipulating environmental stressors [CITE]. However, all of these experimental manipulations began during mid-incubation, after eggs had been laid and pictures had been taken. We focus primarily on pre-treatment female and egg characteristics in this study, but we also include an analysis of nestling growth and fate from a subset of 55 nests that were not subject to any experimental manipulations (see below).
+
+Adult females were captured on day 6-8 of incubation between 7 and 10 am. At the time of capture, we took a series of three small blood samples and a set of standard morphological measurements that included mass, flattened wing length, and the length of the head plus bill [@vitousek2018]. Any females captured for the first time were banded with a USGS aluminum leg band. Depending on the experiment, females were captured again later in incubation or provisioning and males were captured during provisioning, but these samples occurred after experimental manipulations; data from those captures is not included in this paper.
+
+Nestlings were banded and measured on day 12 after hatching. At this time, we measured mass, wing length, head plus bill length, and took a small blood sample. Following banding, we avoided checking nests to prevent forced fledging until day 24. We did a final nest check to determine fledging fate for each nestling. Individuals not in the nest at this point were considered fledged and we recorded the band numbers from any dead nestlings recovered. Given our sampling strategy, we cannot link individual egg characteristics to individual nestling morphology or fates, but we can explore correlations between average egg and nestling characteristics at the nest level. While nestling characteristics and fates were recorded at every nest, we only included analyses of nests that were not subject to any experimental manipulations.
+
+## Egg measurements
+
+Using the photographs described above, we characterized the size and shape of eggs from each nest. To measure shape, we followed the approach described by Stoddard et al. [-@stoddard2017], which results in measures of the degree of ellipticity (deviation from circularity) and asymmetry (difference in shape of the two egg poles) following Baker [-@baker2002]. The measurements were performed using the `EggxTractor` software in MatLab, provided by Stoddard et al. [-@stoddard2017]. To characterize the size of eggs, we used ImageJ [@imagej]. We loaded photographs and set a scale using the scale bar that was included in every image. We then used the straight line segment tool to measure the maximum length from pole to pole (egg length) and the maximum girth (egg width) for each egg. 
+
+## Data analysis
+
+We initially examined the overall amount of intra-specific variation in egg shape from our study in comparison with the amount of inter-specific variation presented in Stoddard et al. [-@stoddard2017]. Given the substantial variation in egg shape between individual tree swallows, we next asked whether aspects of egg shape or size were repeatable within a female. We assessed repeatability in two ways using linear mixed models implemented in the `rptr` package in R [@stoffel2017]. First, we calculated overall repeatability for each egg characteristic considering each egg measured for every female. Because eggs laid in a nest are produced under similar conditions, they may be similar to each other due to those shared conditions in addition to being similar due to intrinsic properties of the individual female. Therefore, we also calculated repeatability using average egg characteristics for each year in a subset of females that were observed in multiple years. Finally, after calculating repeatability, we used a small subset of mother-daughter pairs that both had eggs measured to ask whether a female's egg characteristics predicted her daughter's egg characteristics one or more years later.
+
+We next asked whether individual characteristics of females explained variation in egg shape or size. For these questions, we fit a series of four linear mixed models with egg shape (asymmetry, ellipticity) or size (width, length) as the response variable and with female mass, wing length, head plus bill length, and age as predictors. We included age as a categorical predictor of 'second-year' for first time breeders or 'after second-year' for returning breeders. Female tree swallows have delayed plumage maturation and first time breeders can be identified by their brown plumage regardless of prior capture history. Each of these models also included a random effect for female identity and for nest identity (to account for multiple eggs measured from the same nest). We standardized all continuous predictors to a mean of 0 and standard deviation of 1 so that effect sizes are directly comparable. Models were fit with the `lme4` package and model diagnostics were examined with the `DHARMa` package in R to ensure appropriate fits [CITE].
+
+After finding that female age was related to some egg characteristics, we asked whether this pattern might be best explained by a longitudinal change in egg characteristics as females age or by the selective return of females with particular egg characteristics. We used a subset of XX females that were measured in multiple years and that were initially observed as first time breeders to ask whether egg characteristics changed longitudinally within females as they aged. We used the full set of observations from 2019 and 2020 to ask whether any egg characteristics predicted the likelihood of returning to breed in the following year. 
+
+To ask whether any aspect of egg characteristics were associated with nestling characteristics, we used a subset of 55 nests that were not part of any experiment. For these nests, we calculated the average egg shape and size and fit simple linear models with average nestling morphology (mass, wing, head plus bill) or fate (number hatched, number fledged) as response variables and with egg characteristics as predictors. 
+
+All analyses and figures were produced in R version 4.0.2 [CITE]. The complete set of code and data required to reproduce all analyses and figures is available at https://github.com/cct663/tres_egg_shape and will be permanently archived on Zenodo upon acceptance.
+
+# RESULTS
+
+In total, we measured the shape and size of 1435 eggs produced in 268 nests by 210 unique females. A total of 21 females had eggs measured in two years and 7 females had eggs measured in 3 years. Overall, there was enormous variation in the shape of eggs and tree swallow eggs spanned a large area of the morphospace covered by inter-specific egg shape variation (Figure \@ref(fig:summary-plot)). The four measures of egg size and shape that we examined were moderately to strongly correlated with each other, though each characteristic varied at least somewhat independently of the others (Table \@ref(tab:cor-table)). 
+
+```{r summary-plot, echo = FALSE, message = FALSE, warning = FALSE, fig.width = 4.5, fig.height = 3, fig.cap = "Morphospace of tree swallow egg shapes from 1435 measured eggs. Black ellipse indicates the region containing 95% of eggs. Diamond is the overall average egg shape for tree swallows from this study. The red ellipse contains 95% of the species average egg shapes from 1400 bird species included in Stoddard et al. 2017."}
+
+# Replicating something like the main plot from Cassie Stoddard's Science paper
+  ggplot(data = d_egg, mapping = aes(x = A, y = E)) +
+    stat_ellipse(data = sp_egg, mapping = aes(x = Asymmetry, y = Ellipticity), inherit.aes = FALSE, color = "red") +
+    #geom_point(data = sp_egg, mapping = aes(x = Asymmetry, y = Ellipticity), inherit.aes = FALSE, color = "red", size = 0.7, alpha = 0.5) +
+    geom_point(size = 0.6, alpha = 0.6, color = "slateblue") + 
+    #xlim(-0.02, 0.505) + 
+    #ylim(0.07, 0.75) +
+    xlab("Asymmetry") + 
+    ylab("Ellipticity") +
+    stat_ellipse() +
+    #geom_point(data = subset(sp_egg, sp_egg$Species == "Tachycineta bicolor"), mapping = aes(x = Asymmetry, y = Ellipticity), inherit.aes = FALSE, color = "red", shape = 18, size = 3) +
+    geom_point(data = d_egg_mu, mapping = aes(x = Amu, y = Emu), shape = 23, size = 3, color = "white", fill = "orange") +
+  theme(axis.title = element_text(size = 12), axis.text = element_text(size = 12)) +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
+```
+
+```{r cor-table, echo = FALSE, message = FALSE, warning = FALSE}
+  dec <- na.omit(d_egg[, c("A", "E", "wid_IJ", "len_IJ")])
+  colnames(dec) <- c("Asymmetry", "Ellipticity", "Width", "Length")
+  
+  eg_cor <- round(cor(dec), 2)
+  eg_cor2 <- rcorr(as.matrix(dec))
+  
+  eg_cor[1, ] <- c("", "<0.001", "0.03", "<0.001")
+  eg_cor[2, 2:4] <- c("", "<0.001", "<0.001")
+  eg_cor[3, 3:4] <- c("", "<0.001")
+  eg_cor[4, 4] <- c("")
+  
+  knitr::kable(eg_cor, align = 'c', format = "simple",
+               caption = "Pearson correlation between measures below diagonal and P-value above diagonal")
+```
+
+## Individual repeatability in egg shape and size
+
+```{r rpt-win, echo = FALSE, message = FALSE, warning = FALSE, include = FALSE}
+# repeatability of each egg
+  rw_asymmetry <- rptGaussian(A ~ 1 + (1|uby), grname = "uby", data = d_egg, nboot = 500)
+  rw_ellip <- rptGaussian(E ~ 1 + (1|uby), grname = "uby", data = d_egg, nboot = 500)
+  rw_len <- rptGaussian(len_IJ ~ 1 + (1|uby), grname = "uby", data = d_egg, nboot = 500)
+  rw_wid <- rptGaussian(wid_IJ ~ 1 + (1|uby), grname = "uby", data = d_egg, nboot = 500)
+```
+
+```{r rpt-btwn, echo = FALSE, warning = FALSE, message = FALSE, include = FALSE}
+# wrangle data for between year
+  d_egg2 <- d_egg[, c("unit_box", "year", "A", "E", "len_IJ", "wid_IJ", "fband")]
+  egg_wide2 <- d_egg2 %>%
+      dplyr::group_by(fband, year) %>%
+      dplyr::summarise(A = mean(A, na.rm = TRUE), E = mean(E, na.rm = TRUE), 
+                len_IJ = mean(len_IJ, na.rm = TRUE), wid_IJ = mean(wid_IJ, na.rm = TRUE),  year = mean(year))
+
+# calculate repeatability between years
+    rb_asymmetry <- rptGaussian(A ~ 1 + (1|fband), grname = "fband", data = egg_wide2, nboot = 500)
+    rb_ellip <- rptGaussian(E ~ 1 + (1|fband), grname = "fband", data = egg_wide2, nboot = 500)
+    rb_len <- rptGaussian(len_IJ ~ 1 + (1|fband), grname = "fband", data = egg_wide2, nboot = 500)
+    rb_wid <- rptGaussian(wid_IJ ~ 1 + (1|fband), grname = "fband", data = egg_wide2, nboot = 500)
+```
+
+Despite the enormous variation overall, individual females had remarkably high repeatability in the shape and size of eggs they produced. When considering all eggs within a clutch, both shape and size were highly repeatable (asymmetry r = `r round(rw_asymmetry$R[1], 2)`, CI = `r round(rw_asymmetry$CI_emp[1], 2)` to `r round(rw_asymmetry$CI_emp[2], 2)`, P < 0.001; ellipticity r = `r round(rw_ellip$R[1], 2)`, CI = `r round(rw_ellip$CI_emp[1], 2)` to `r round(rw_ellip$CI_emp[2], 2)`, P < 0.001; egg length r = `r round(rw_len$R[1], 2)`, CI = `r round(rw_len$CI_emp[1], 2)` to `r round(rw_len$CI_emp[2], 2)`, P < 0.001; egg width r = `r round(rw_wid$R[1], 2)`, CI = `r round(rw_wid$CI_emp[1], 2)` to `r round(rw_wid$CI_emp[2], 2)`, P < 0.001). Repeatability was even higher when considering only the average egg size and shape in different years for females that returned to breed in multiple years (Figure \@ref(fig:btwn-year) A-D; asymmetry r = `r round(rb_asymmetry$R[1], 2)`, CI = `r round(rb_asymmetry$CI_emp[1], 2)` to `r round(rb_asymmetry$CI_emp[2], 2)`, P < 0.001; ellipticity r = `r round(rb_ellip$R[1], 2)`, CI = `r round(rb_ellip$CI_emp[1], 2)` to `r round(rb_ellip$CI_emp[2], 2)`, P < 0.001; egg length r = `r round(rb_len$R[1], 2)`, CI = `r round(rb_len$CI_emp[1], 2)` to `r round(rb_len$CI_emp[2], 2)`, P < 0.001; egg width r = `r round(rb_wid$R[1], 2)`, CI = `r round(rb_wid$CI_emp[1], 2)` to `r round(rb_wid$CI_emp[2], 2)`, P < 0.001).
+
+When comparing the eggs of mothers and their daughters, there was a moderate positive association between all egg characteristics (Pearson's correlation between mother and daughter for asymmetry r = 0.31; ellipticity r = 0.28; width r = 0.25; length r = 0.24). However, with a sample size of only 15 pairs, none of these relationships was significant (Pearson's correlation test for asymmetry: t = 1.18, df = 13, P = 0.26; ellipticity: t = 1.06, df = 13, P = 0.31; width: t = 0.94, df = 13, P = 0.36; length: t = 0.89, df = 13, P = 0.39).
+
+## Predictors of egg shape and size
+
+In linear mixed models, no aspect of female morphology or age was related to egg asymmetry or ellipticity (Table \@ref(tab:egg-mods)). Females head plus bill length was positively correlated with egg width, while female mass was negatively correlated with egg width (Table \@ref(tab:egg-mods); head plus bill length $\beta$ = 0.08, P = 0.01; mass $\beta$ = 0.04, P = 0.04). No aspect of female morphology predicted egg length, but older females produced eggs that were both wider and longer (Table \@ref(tab:egg-mods); female age for egg width $\beta$ = 0.24, P < 0.001; female age for egg length $\beta$ = 0.24, P < 0.02). Despite the fact that age was significantly related to egg width and length and that morphology was significantly related to egg width, the overall amount of variation explained by these models was low (Table \@ref(tab:egg-mods); egg width full model marginal R^2^ = 0.04; egg length full model marginal R^2^ = 0.02). 
+
+The difference in egg size with female age could arise from selective survival of females that lay larger eggs or from longitudinal increases in egg size as females age. 
+
+INSERT SURVIVAL MODEL
+
+Among females that were measured as both first time breeders and in at least one subsequent year, asymmetry did not change longitudinally, but ellipticity decreased slightly (Figure \@ref(fig:age-change) A-B; paired t-test for asymmetry: t = -0.34, df = 28, P = 0.73; ellipticity: t = -2.3, df = 28, P = 0.03). Both the width and length of eggs increased significantly from a female's first to second year (Figure \@ref(fig:age-change) C-D; paired t-test for width: t = 5.31, df = 28, P < 0.001; length: t = 2.25, df = 28, P = 0.03).
+
+
+
+
+
+```{r btwn-year, echo = FALSE, message = FALSE, warning = FALSE, fig.height = 5.2, fig.width = 5.2, fig.cap = "Average asymmetry (A), ellipticity (B), egg width (C), and egg length (D) for females that had egg shape measurements in consecutive years."}
+
+# wrangle data to make wide then long version with repeated year observations matched up
+          d_egg2 <- d_egg[, c("unit_box", "year", "A", "E", "len_IJ", "wid_IJ", "fband")]
+          egg_wide2 <- d_egg2 %>%
+              dplyr::group_by(fband, year) %>%
+              dplyr::summarize(A = mean(A, na.rm = TRUE), E = mean(E, na.rm = TRUE), 
+                        len_IJ = mean(len_IJ, na.rm = TRUE), wid_IJ = mean(wid_IJ, na.rm = TRUE),  year = mean(year)) %>%
+              pivot_wider(names_from = year, values_from = c(A, E, len_IJ, wid_IJ))
+          
+          eggx <- data.frame(fband = rep(egg_wide2$fband, 2),
+                             ellip1 = c(egg_wide2$E_2019, egg_wide2$E_2020),
+                             ellip2 = c(egg_wide2$E_2020, egg_wide2$E_2021),
+                             asym1 = c(egg_wide2$A_2019, egg_wide2$A_2020),
+                             asym2 = c(egg_wide2$A_2020, egg_wide2$A_2021),
+                             wid1 = c(egg_wide2$wid_IJ_2019, egg_wide2$wid_IJ_2020),
+                             wid2 = c(egg_wide2$wid_IJ_2020, egg_wide2$wid_IJ_2021),
+                             len1 = c(egg_wide2$len_IJ_2019, egg_wide2$len_IJ_2020),
+                             len2 = c(egg_wide2$len_IJ_2020, egg_wide2$len_IJ_2021))
+          eggx <- na.omit(eggx)
+          
+
+ 
+# Make two panel plot for asymmetry and ellipticity                   
+          p1 <- ggplot(eggx, mapping = aes(x = asym1, y = asym2)) +
+            geom_point(col = "black", alpha = 0.6) + 
+            geom_smooth(method = "lm", color = "coral3", fill = "coral3") +
+            xlab("Asymmetry year 1") + ylab("Asymmetry year 2") +
+            theme_bw() +
+            theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+                  axis.title = element_text(size = 14)) +
+            annotate(geom = "text", label = "A", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 5)
+          
+          p2 <- ggplot(eggx, mapping = aes(x = ellip1, y = ellip2)) +
+            geom_point(col = "black", alpha = 0.6) + 
+            geom_smooth(method = "lm", color = "coral3", fill = "coral3") +
+            xlab("Ellipticity year 1") + ylab("Ellipticity year 2") +
+            theme_bw() +
+            theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+                  axis.title = element_text(size = 14)) +
+            annotate(geom = "text", label = "B", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 5)
+          
+          p3 <- ggplot(eggx, mapping = aes(x = wid1, y = wid2)) +
+            geom_point(col = "black", alpha = 0.6) + 
+            geom_smooth(method = "lm", color = "coral3", fill = "coral3") +
+            xlab("Width year 1 (mm)") + ylab("Width year 2 (mm)") +
+            theme_bw() +
+            theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+                  axis.title = element_text(size = 14)) +
+            annotate(geom = "text", label = "C", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 5)
+          
+          p4 <- ggplot(eggx, mapping = aes(x = len1, y = len2)) +
+            geom_point(col = "black", alpha = 0.6) + 
+            geom_smooth(method = "lm", color = "coral3", fill = "coral3") +
+            xlab("Length year 1 (mm)") + ylab("Length year 2 (mm)") +
+            theme_bw() +
+            theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+                  axis.title = element_text(size = 14)) +
+            annotate(geom = "text", label = "B", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 5)
+          
+          ggpubr::ggarrange(p1, p2, p3, p4, nrow = 2, ncol = 2)
+
+# old version of these plots ----
+        # ggplot(egg_wide2, mapping = aes(x = A_2019, y = A_2020)) +
+        #   geom_point(col = "orange") + xlab("Asymmetry year 1") + ylab("Asymmetry year 2") +
+        #   geom_smooth(method = "lm", color = "orange", fill = "orange") +
+        #   geom_point(color = "slateblue", mapping = aes(x = A_2020, y = A_2021)) +
+        #   geom_smooth(method = "lm", color = "slateblue", fill = "slateblue", mapping = aes(x = A_2020, y = A_2021)) +
+        #   theme_bw()
+        # 
+        # ggplot(egg_wide2, mapping = aes(x = E_2019, y = E_2020)) +
+        #   geom_point(col = "orange") + xlab("Ellipticity year 1") + ylab("Ellipticity year 2") +
+        #   geom_smooth(method = "lm", color = "orange", fill = "orange") +
+        #   geom_point(color = "slateblue", mapping = aes(x = E_2020, y = E_2021)) +
+        #   geom_smooth(method = "lm", color = "slateblue", fill = "slateblue", mapping = aes(x = E_2020, y = E_2021)) +
+        #   theme_bw()
+        # 
+        # ggplot(egg_wide2, mapping = aes(x = len_IJ_2019, y = len_IJ_2020)) +
+        #   geom_point(col = "orange") + xlab("Egg length year 1") + ylab("Egg length year 2") +
+        #   geom_smooth(method = "lm", color = "orange", fill = "orange") +
+        #   geom_point(color = "slateblue", mapping = aes(x = len_IJ_2020, y = len_IJ_2021)) +
+        #   geom_smooth(method = "lm", color = "slateblue", fill = "slateblue", mapping = aes(x = len_IJ_2020, y = len_IJ_2021)) +
+        #   theme_bw()
+        # 
+        # ggplot(egg_wide2, mapping = aes(x = wid_IJ_2019, y = wid_IJ_2020)) +
+        #   geom_point(col = "orange") + xlab("Egg width year 1") + ylab("Egg width year 2") +
+        #   geom_smooth(method = "lm", color = "orange", fill = "orange") +
+        #   geom_point(color = "slateblue", mapping = aes(x = wid_IJ_2020, y = wid_IJ_2021)) +
+        #   geom_smooth(method = "lm", color = "slateblue", fill = "slateblue", mapping = aes(x = wid_IJ_2020, y = wid_IJ_2021)) +
+        #   theme_bw() + 
+        #   coord_cartesian(ylim = c(13.5, 15.5), xlim = c(13, 15.5))
+
+```
+
+
+```{r age-change, echo = FALSE, message = FALSE, warning = FALSE, fig.height = 3.3, fig.width = 8.5, fig.cap = "Change in egg shape (A, B) and size (C, D) for females that were observed as one year olds and again in later breeding seasons. Boxes show the mean and interquartile range for each age group. Lines connect observations from the same individual."}
+
+d_age <- d_egg %>%
+  filter(f_age == "SY" | f_age == "ASY") %>%
+  group_by(fband, f_age) %>%
+  dplyr::summarise(A_mu = mean(A), E_mu = mean(E), len_mu = mean(len_IJ), wid_mu = mean(wid_IJ)) 
+  #pivot_wider(id_cols = fband, names_from = f_age, values_from = c(A_mu, E_mu, len_mu, wid_mu)) %>%
+  #filter(!is.na(A_mu_SY), !is.na(A_mu_ASY))
+
+for(i in 1:nrow(d_age)){
+  d_age$count[i] <- nrow(subset(d_age, d_age$fband == d_age$fband[i]))
+}
+d_age <- subset(d_age, d_age$count == 2)
+
+d_age$f_age <- as.factor(d_age$f_age)
+d_age$f_age <- relevel(d_age$f_age, ref = "SY")
+a1 <- ggplot(data = d_age, mapping = aes(x = f_age, y = A_mu)) +
+  geom_boxplot(alpha = 0.8, width = 0.2, outlier.shape = NA, fill = "coral3") +
+  geom_line(aes(group = fband), color = "slateblue") +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  xlab("Female age") + ylab("Average egg asymmetry") +
+  theme(axis.title = element_text(size = 12), axis.text = element_text(size = 10)) +
+  annotate(geom = "text", label = "A", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 4) +
+  scale_x_discrete(labels = c("SY" = "1", "ASY" = "2+"))
+
+a2 <- ggplot(data = d_age, mapping = aes(x = f_age, y = E_mu)) +
+  geom_boxplot(alpha = 0.8, width = 0.2, outlier.shape = NA, fill = "coral3") +
+  geom_line(aes(group = fband), color = "slateblue") +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  xlab("Female age") + ylab("Average egg ellipticity") +
+  theme(axis.title = element_text(size = 12), axis.text = element_text(size = 10)) +
+  annotate(geom = "text", label = "B", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 4) +
+  scale_x_discrete(labels = c("SY" = "1", "ASY" = "2+"))
+
+a3 <- ggplot(data = d_age, mapping = aes(x = f_age, y = wid_mu)) +
+  geom_boxplot(alpha = 0.8, width = 0.2, outlier.shape = NA, fill = "coral3") +
+  geom_line(aes(group = fband), color = "slateblue") +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  xlab("Female age") + ylab("Average egg width (mm)") +
+  theme(axis.title = element_text(size = 12), axis.text = element_text(size = 10)) +
+  annotate(geom = "text", label = "C", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 4) +
+  scale_x_discrete(labels = c("SY" = "1", "ASY" = "2+"))
+
+a4 <- ggplot(data = d_age, mapping = aes(x = f_age, y = len_mu)) +
+  geom_boxplot(alpha = 0.8, width = 0.2, outlier.shape = NA, fill = "coral3") +
+  geom_line(aes(group = fband), color = "slateblue") +
+  theme_bw() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  xlab("Female age") + ylab("Average egg length (mm)") +
+  theme(axis.title = element_text(size = 12), axis.text = element_text(size = 10)) +
+  annotate(geom = "text", label = "D", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 4) +
+  scale_x_discrete(labels = c("SY" = "1", "ASY" = "2+"))
+
+ggpubr::ggarrange(a1, a2, a3, a4, nrow = 1)
+
+d_age3 <- d_age %>%
+  pivot_wider(id_cols = fband, names_from = f_age, values_from = c("A_mu", "E_mu", "len_mu", "wid_mu")) 
+
+# t.test(d_age3$A_mu_SY, d_age3$A_mu_ASY, paired = TRUE)
+# t.test(d_age3$E_mu_SY, d_age3$E_mu_ASY, paired = TRUE)
+# t.test(d_age3$wid_mu_SY, d_age3$wid_mu_ASY, paired = TRUE)
+# t.test(d_age3$len_mu_SY, d_age3$len_mu_ASY, paired = TRUE)
+
 ```
 
 
@@ -75,110 +390,81 @@ d_recruit2 <- plyr::join(d_recruit, d_bird2, "fband")
                   axis.title = element_text(size = 14)) +
             annotate(geom = "text", label = "B", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 8)
           
-          ggpubr::ggarrange(p1, p2)
+          p3 <- ggplot(d_recruit2, mapping = aes(x = mu_wid, y = mu_wid_moth)) +
+            geom_point(col = "black", alpha = 0.6) + 
+            geom_smooth(method = "lm", color = "coral3", fill = "coral3") +
+            xlab("Average egg width") + ylab("Mother's average egg width") +
+            theme_bw() +
+            theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+                  axis.title = element_text(size = 14)) +
+            annotate(geom = "text", label = "C", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 8)
+                    
+          p4 <- ggplot(d_recruit2, mapping = aes(x = mu_len, y = mu_len_moth)) +
+            geom_point(col = "black", alpha = 0.6) + 
+            geom_smooth(method = "lm", color = "coral3", fill = "coral3") +
+            xlab("Average egg length") + ylab("Mother's average egg length") +
+            theme_bw() +
+            theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
+                  axis.title = element_text(size = 14)) +
+            annotate(geom = "text", label = "D", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 8)
+          
+          #ggpubr::ggarrange(p1, p2, p3, p4)
 
   
 ```
 
-```{r echo = FALSE}
-# summarize by year
-  d_eggn <- d_egg %>%
-    group_by(year, unit_box, fband) %>%
-    summarise(mu_A = mean(A), mu_E = mean(E), n = n(), epy = mean(epy_in_nest), sd_A = sd(A), sd_E = sd(E), wpy = mean(wpy_in_nest), knwn = mean(num_pat_knwn))
-  d_eggn$pc_epy <- d_eggn$epy / d_eggn$knwn
-  #plot(d_eggn$pc_epy, d_eggn$sd_A)
-  
 
-```
+```{r egg-mods, echo = FALSE, warning = FALSE, message = FALSE}
 
+d_egg$f_age <- as.factor(d_egg$f_age)
+d_egg$f_age <- relevel(d_egg$f_age, ref ="SY")
+d_egg <- subset(d_egg, d_egg$f_age == "SY" | d_egg$f_age == "ASY")
 
-# INTRODUCTION
+mA <- lmer(A ~ scale(f_hb1) + scale(f_wing1) + scale(f_mass1) + f_age + (1|fband) + (1|uby), data = d_egg)
+mE <- lmer(E ~ scale(f_hb1) + scale(f_wing1) + scale(f_mass1) + f_age + (1|fband) + (1|uby), data = d_egg)
+mlen <- lmer(len_IJ ~ scale(f_hb1) + scale(f_wing1) + scale(f_mass1) + f_age + (1|fband) + (1|uby), data = d_egg)
+mwid <- lmer(wid_IJ ~ scale(f_hb1) + scale(f_wing1) + scale(f_mass1) + f_age + (1|fband) + (1|uby), data = d_egg)
 
+tm <- tab_model(mA, mE, mwid, mlen, show.re.var = FALSE, show.ngroups = FALSE, show.icc = FALSE,
+                  pred.labels = c("Intercept", "Headbill", "Wing", "Mass", "Age"),
+                  dv.labels = c("Asymmetry", "Ellipticity", "Width", "Length"),
+                  file = here::here("5_other_outputs/models.html"))
 
+tmod <- rlist::list.clean(XML::readHTMLTable(here::here("5_other_outputs/models.html")), fun = is.null, recursive = FALSE)
+tmod2 <- tmod[[1]] %>% janitor::row_to_names(row_number = 1)
+#tmod2 <- as.matrix(tmod2) %>% as_tibble()
+tmod2[is.na(tmod2)] <- ""
 
-# METHODS
+# make a tab delimited text version of table to read in and print with kable
 
+#html2latex::html2pdf(tm)
 
-# RESULTS
+#knitr::kable(tmod2, format = "simple", caption = "replace with fit model table", align = "c")
 
-All aspects of egg shape are highly repeatable within females, both overall and when comparing between years. 
-
-Lots of variation between females in their egg shape.
-
-Aspects of egg shape and size are correlated with each other, but only loosely.
-
-Age is not related to egg shape, but older females do lay larger eggs, though effect is very small. Check if this is longitudinal change or selective disappearance.
-
-
-```{r btwn-year, echo = FALSE, message = FALSE, warning = FALSE, fig.height = 4, fig.width = 8, fig.cap = "Average asymmetry (A) and ellipticity (B) for females that had egg shape measurements in consecutive years."}
-
-# wrangle data to make wide then long version with repeated year observations matched up
-          d_egg2 <- d_egg[, c("unit_box", "year", "A", "E", "len_IJ", "wid_IJ", "fband")]
-          egg_wide2 <- d_egg2 %>%
-              group_by(fband, year) %>%
-              summarize(A = mean(A, na.rm = TRUE), E = mean(E, na.rm = TRUE), 
-                        len_IJ = mean(len_IJ, na.rm = TRUE), wid_IJ = mean(wid_IJ, na.rm = TRUE),  year = mean(year)) %>%
-              pivot_wider(names_from = year, values_from = c(A, E, len_IJ, wid_IJ))
-          
-          eggx <- data.frame(fband = rep(egg_wide2$fband, 2),
-                             ellip1 = c(egg_wide2$E_2019, egg_wide2$E_2020),
-                             ellip2 = c(egg_wide2$E_2020, egg_wide2$E_2021),
-                             asym1 = c(egg_wide2$A_2019, egg_wide2$A_2020),
-                             asym2 = c(egg_wide2$A_2020, egg_wide2$A_2021))
-          eggx <- na.omit(eggx)
- 
-# Make two panel plot for asymmetry and ellipticity                   
-          p1 <- ggplot(eggx, mapping = aes(x = asym1, y = asym2)) +
-            geom_point(col = "black", alpha = 0.6) + 
-            geom_smooth(method = "lm", color = "coral3", fill = "coral3") +
-            xlab("Asymmetry year 1") + ylab("Asymmetry year 2") +
-            theme_bw() +
-            theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
-                  axis.title = element_text(size = 14)) +
-            annotate(geom = "text", label = "A", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 8)
-          
-          p2 <- ggplot(eggx, mapping = aes(x = ellip1, y = ellip2)) +
-            geom_point(col = "black", alpha = 0.6) + 
-            geom_smooth(method = "lm", color = "coral3", fill = "coral3") +
-            xlab("Ellipticity year 1") + ylab("Ellipticity year 2") +
-            theme_bw() +
-            theme(panel.grid.minor = element_blank(), panel.grid.major = element_blank(),
-                  axis.title = element_text(size = 14)) +
-            annotate(geom = "text", label = "B", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 8)
-          
-          ggpubr::ggarrange(p1, p2)
-
-# old version of these plots ----
-        # ggplot(egg_wide2, mapping = aes(x = A_2019, y = A_2020)) +
-        #   geom_point(col = "orange") + xlab("Asymmetry year 1") + ylab("Asymmetry year 2") +
-        #   geom_smooth(method = "lm", color = "orange", fill = "orange") +
-        #   geom_point(color = "slateblue", mapping = aes(x = A_2020, y = A_2021)) +
-        #   geom_smooth(method = "lm", color = "slateblue", fill = "slateblue", mapping = aes(x = A_2020, y = A_2021)) +
-        #   theme_bw()
-        # 
-        # ggplot(egg_wide2, mapping = aes(x = E_2019, y = E_2020)) +
-        #   geom_point(col = "orange") + xlab("Ellipticity year 1") + ylab("Ellipticity year 2") +
-        #   geom_smooth(method = "lm", color = "orange", fill = "orange") +
-        #   geom_point(color = "slateblue", mapping = aes(x = E_2020, y = E_2021)) +
-        #   geom_smooth(method = "lm", color = "slateblue", fill = "slateblue", mapping = aes(x = E_2020, y = E_2021)) +
-        #   theme_bw()
-        # 
-        # ggplot(egg_wide2, mapping = aes(x = len_IJ_2019, y = len_IJ_2020)) +
-        #   geom_point(col = "orange") + xlab("Egg length year 1") + ylab("Egg length year 2") +
-        #   geom_smooth(method = "lm", color = "orange", fill = "orange") +
-        #   geom_point(color = "slateblue", mapping = aes(x = len_IJ_2020, y = len_IJ_2021)) +
-        #   geom_smooth(method = "lm", color = "slateblue", fill = "slateblue", mapping = aes(x = len_IJ_2020, y = len_IJ_2021)) +
-        #   theme_bw()
-        # 
-        # ggplot(egg_wide2, mapping = aes(x = wid_IJ_2019, y = wid_IJ_2020)) +
-        #   geom_point(col = "orange") + xlab("Egg width year 1") + ylab("Egg width year 2") +
-        #   geom_smooth(method = "lm", color = "orange", fill = "orange") +
-        #   geom_point(color = "slateblue", mapping = aes(x = wid_IJ_2020, y = wid_IJ_2021)) +
-        #   geom_smooth(method = "lm", color = "slateblue", fill = "slateblue", mapping = aes(x = wid_IJ_2020, y = wid_IJ_2021)) +
-        #   theme_bw() + 
-        #   coord_cartesian(ylim = c(13.5, 15.5), xlim = c(13, 15.5))
+#knitr::kable(tmod, caption = "fill")
 
 ```
 
 
 # DISCUSSION
+
+
+Where does variation come from? Biomechanics of their own physiology. 
+
+Heritability but no strong selection on shape: spandrel or by-product of selection on other characteristics with relaxed selection on egg shape itself. Is this common or are tres unique? Possibly because of cavities and no specialized need for particular characteristics they have more variation than other species? But most comparative work focuses only on species means not the amount of variation.
+
+Suggestion of moderate parent offsrping correlation and this is without considering any contribution of the fathers genes to egg shape. Not significant here but sample size is very small. Not aware of any studies that calculate heritability of egg shape or size (maybe in chickens?). 
+
+Also worth considering range wide variation, tres are widespread and experience drastically different thermal and resource environments plus have gradients of size and clutch size etc. Does that explain shape variation? Perhaps mixing among the population maintains large variation in egg shape and size?
+
+Interesting that despite longitudinal increases in egg size, shape stays very similar for females or at least doesn't change in a consistent way
+
+What about developmental effects? Early life conditions have profound effect on grown and size during adulthood and potentially could contribute as a by-product to difference in shape that have no/limited consequenes during adulthood.
+
+# ETHICAL NOTE
+
+# ACKNOWLEDGMENTS
+
+# FUNDING
+
+# REFERENCES
