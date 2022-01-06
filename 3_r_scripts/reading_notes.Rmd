@@ -1,0 +1,114 @@
+---
+title: "Reading notes."
+author: 
+ - Conor C. Taff
+ - Thomas A. Ryan
+ - Anyone else?
+ - Maren N. Vitousek
+header-includes:
+  - \usepackage[font={footnotesize}, labelfont={bf}]{caption}
+  #- \usepackage{setspace}\doublespacing
+  #- \usepackage{lineno}\linenumbers
+fontsize: 12pt
+output: 
+  bookdown::pdf_document2:
+      number_sections: FALSE
+      toc: FALSE
+      extra_dependencies: ["flafter"]
+  bookdown::word_document2:
+      number_sections: FALSE
+      toc: FALSE
+      extra_dependcies: ["flafter"]
+  bookdown::html_document2:
+      number_sections: FALSE
+      toc: TRUE
+bibliography: references.bib
+csl: hormone-behavior.csl
+---
+
+# Notes from citations or bullet points for myself.
+
+--
+
+What is the level of analysis. 
+
+stoddard2017: big cross species but uses species mean values, what about variation? generally explained as an adaptation to life history. finds that at broad taxonomic scale adaptations for flight are related to egg shape: so is there an optimal shape for each species?
+
+duursma2018: 310 passerines from australia, look and width and length in relation to climate and nest type: hotter and drier areas are associated with less egg elongation (but seems to use one value per species). Actually not totally clear if they have a bunch of measures for each species but seems they must.
+
+rahn1998: Water accounts for 15% of initial egg mass. this citation also shows that there is a greater constraint at species level on breadth than on length when eggs are formed in the shell gland
+
+rahn1998b: cool look at frequency distritubion of egg mass for 7,246 bird species (or subs) from tables of Schonwetter 1960-1983 including egg length, width, mass. no analysis of associations with life history
+
+mortola2009; ar1991: Appropriate loss of water through development of embryo is important (can't use mass on different days)
+
+church2019: similar analysis to cassies but using egg size and shape from 6700 insect species
+
+birkhead2018: test murre and razorbill egg stability on different slopes with eggs of slightly different shape, but not linked to individual female differences (do females lay the same shape egg?) and not connecting to how much variation in a species. They do have eggs that vary somewhat in shape for each species though. birkhead2018
+
+
+biggins2018; attard2018: Note that our measure is only one way of characterizing shape variation and there is some debate over different measures (quite a few others also). Nevertheless, for TRES eggs (not especially pyriform) the method appears to have described shape well
+
+nagy2019: nest type and egg shape/size have coevolved
+
+birkhead2021: variation in murre egg patterning suggests individual recognition
+
+shatkovska2018: measured pelvis size in relation to egg size comparative study though just uses averages for each species
+
+stoddard2019: this is a reply to birkhead 2019: they say here that could well be different mechanisms operating at smaller taxonomic scales and cite results investing effects of incubation, egg composition, strength and stability, protection from contamination, morphology, diet, and climate.
+
+birkhead et al 2019: comparative but only among 30 species of alcids and penguins: they find that egg size is related to chick developmental mode, clutch size, and incubation
+
+hauber2019: common murre females consistent in background color, maculation coverage, spot shape, and shell size: suggestion of use to recognize own eggs (could shape be used similarly?) two papers, hauber 2019 in canadian journal of o and hauber 2019 in prsb
+
+banbura2018: do actually look at within species variation in egg size and shape in blue tits at two populatoins, persistant long lasting pattern of spatial variation in egg size and shape between pops 10km apart controlling for clutch size, egg size negatively correlated with clutch size but shape not correlated. also find very high repeatability within clutch in volume and 'shape' but only measuring length and width
+
+quach2021: another showing egg pattern as identity signal in colonially nesting seabirds
+
+adamou2018: chat eggs repeatable elongation and (in some years) elongation related to hatching success
+
+marini2020: egg collections are underutilized for research (about 5 million eggs from 2 million egg sets in world museums)
+
+andersson1978: optimal egg shape in waders (to fit in 4 egg clutch)
+
+barta1997: models optimal egg shape for clutches of size 1-10 (spherical, pointed, then spherical again)
+
+montgomerie2021: should read this one completely, full re-analysis of phylogenetic patterns with the different egg measurement pattern, they say that elongation is largely driven by female anatomy while asymmetry is driven by conditions during the incubation period (clutch size, structure of nest, thermal environment, risk of breaking). again make this different scale argument.
+- does some analyses at different scales (family, global) but could go even farther in multi-scale down to individuals
+- at the family level, some signs of predictors are entirely reversed
+- egg asymmetry quite strongly related to incubation site where least asymmetric eggs are incubated in sites most protected from heat loss
+-eneral statistical models based on data across a wide diversity of species often tacitly assume that there is no variation in slopes among constituent groups. As a result, small effect sizes in broadscale comparative studies can mask useful insights into the underlying mechanisms, whether these be adaptations or constraints. Such global analyses may often be subject to Simpson’s paradox (Samuel et al. 2000) wherein within-taxon trends sometimes have the opposite sign to global trends (figs. 2C–2J, 4A, 6B).
+-We have also made a fair start at quantifying the shapes of birds’ eggs in an accurate, repeatable fashion, but a more complete database from both museum and field studies is essential to understand why birds’ eggs are so variable in shape both within and between species. BUT: don't actually do any quantifying within species
+
+- note that even though comparative studies are using huge sample sizes of eggs, number of eggs per species is often small (montgomerie average ~5 eggs per species, stoddard average ~50 but many species have just a couple eggs)
+
+Biological variation is hierarchically organized. Explanations and hypotheses that apply at one level need not apply at another, but ultimately variation at species level is the product of processes that play out within individuals and within species, because these levels provide the variation that can be shaped to produce larger scale patterns. Understanding those patterns is potentially helpful for resolving differences in understanding of egg shape evolution.
+
+Few papers link variation in egg shape to individual females characteristics or repeatedly measure eggs laid by the same females over time. 
+
+Important for thinking about maternal effects: lots of work looking at egg weight or hormone deposition, but how constrained are individuals by their own anatomy?
+
+MATERNAL EFFECTS AND EGG VOLUME
+
+potti1999: pied flycatcher, looks at egg volume heritability across three generations, maternal condition influences egg volume, but separately from those maternal effects there is also an effect of early life environment/conditions on later egg volume of nestlings -> long carryover
+
+christians2002: this would also be a good one to read carefully, review of variation in egg size within species
+- many species have large variation in egg size (largest = 50% bigger), but this is largely the result of between individual differences and in individuals are highly repeatable (generally above 0.6) nd heritable (>0.5). Supplemental food or diet sometimes increases egg size within individuals, but more often than not does not and if it does only a small %. Egg size increases with age in 17/37 studies, but generally small increases. Female mass and size rarely explain much variation within species. Egg size related to nestling mass in first few days, but longer term effects are very equivocal.
+
+groothuis2019 & groothuis2008: reviews of hormone mediated maternal effects in birds. assumption here is for more plasticity because these seem to matter?
+
+tschirren2009: collared flycatcher, yolk mass, testosterone, and egg mass moderately to highly repeatable and heritable, but transfer of androstenedione (A4) had low repetability and no heritability: potential for more plasticity in A4
+
+TRES: 
+
+whittingham2002: yolk testosterone varied with levels of agression experienced by females around laying 
+
+ardia2006: insect availability positively predicted yolk mass and total egg mass, eggs formed over 5-6 days, early laying birds independent of food quality laid larger eggs, eggs later in laying sequence were larger and had larger yolks, also showed higher mass with age but not linking the same individuals between years 
+
+wiggins1990: 79% of variance in egg mass explained by female id and repeatability of mass was 0.77, female body condition and age also related to egg mass 
+
+pellerin2016: looked at trade-off between clutch size and egg mass and found it but only in females that were smaller (resource allocation only when acquisition is lower) 
+
+whittingham2007: egg mass influenced by ambient temperature and by differences between females, but young from larger eggs were larger at hacthing, grew faster, and had stronger immune function on day 11 
+
+bitton2007: intraclutch variation in mass is important, but not explained by variation in egg mass (rather hatching order)
