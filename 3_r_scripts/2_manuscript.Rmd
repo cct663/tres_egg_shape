@@ -3,19 +3,21 @@ title: "Between-individual and within-individual variation in the shape of eggs 
 author: 
  - Conor C. Taff
  - Thomas A. Ryan
+ - Jennifer J. Uehling
+ - Allison S. Injaian
  - Maren N. Vitousek
 header-includes:
   - \usepackage[font={footnotesize}, labelfont={bf}]{caption}
 fontsize: 12pt
 output: 
-  bookdown::word_document2:
-      number_sections: FALSE
-      toc: FALSE
-      extra_dependcies: ["flafter"]
   bookdown::pdf_document2:
       number_sections: FALSE
       toc: FALSE
       extra_dependencies: ["flafter"]
+  bookdown::word_document2:
+      number_sections: FALSE
+      toc: FALSE
+      extra_dependcies: ["flafter"]
   bookdown::html_document2:
       number_sections: FALSE
       toc: TRUE
@@ -23,14 +25,13 @@ bibliography: references.bib
 csl: hormone-behavior.csl
 ---
 
-*CCT, TAR, MNV: Department of Ecology & Evolutionary Biology and Lab of Ornithology, Cornell University*  
+*CCT, TAR, JJU, MNV: Department of Ecology & Evolutionary Biology and Lab of Ornithology, Cornell University*  
+*ASI: Odum School of Ecology, University of Georgia* (Alli is this right?)
 
 
 *Correspondence: Conor Taff; cct63@cornell.edu*  
 
 
-**Note on authors:**
-Should we add any other authors here? I don't have a strong feeling either way. Some people did help with taking a few pictures, although mostly Tom and I took all the pictures. I guess in the light experiment year Alli and Jenny took pictures at CU4 & turkey hill so they might be the next most obvious people to add (and Alli hasn't been added on as many collaborative papers as others so might make sense if she wants to be on). Of course other people helped in these years with the general field work/monitoring etc. I'm not sure how to differentiate adding any other particular person though, without just adding everyone from those years if we go by general field work contributions (David, Jenn, Monique)... I guess my thought would be if we want to add anyone it is probably: Alli > Jenny > > David > > Cedric = Jenn = Monique in terms of general field contributions in the years here. Lots of students in those years too but I don't think any ever took pictures or really even talked with me about this project.
 
 \newpage
 \raggedright
@@ -534,6 +535,8 @@ d_recruit2 <- plyr::join(d_recruit, d_bird2, "fband")
 
 In linear mixed models, no aspect of female morphology or age was related to egg asymmetry or ellipticity (Table \@ref(tab:egg-mods)). Female head plus bill length was positively correlated with egg width, while female mass was negatively correlated with egg width (Table \@ref(tab:egg-mods); head plus bill length $\beta$ = 0.08, P = 0.01; mass $\beta$ = 0.04, P = 0.04). No aspect of female morphology predicted egg length, but older females produced eggs that were both wider and longer (Table \@ref(tab:egg-mods); female age for egg width $\beta$ = 0.24, P < 0.001; female age for egg length $\beta$ = 0.24, P < 0.02). Despite the fact that age was significantly related to egg width and length and that morphology was significantly related to egg width, the overall amount of variation explained by the fixed effects in these models was low (Table \@ref(tab:egg-mods); egg width full model marginal R^2^ = 0.04; egg length full model marginal R^2^ = 0.02). 
 
+We examined clutch size in a separate set of linear mixed models including only nests that had at least 4 eggs. Clutch size was unrelated to egg shape (asymmetry $\beta$ = -0.0, CI = -0.01 to 0.0, P = 0.88; ellipticity $\beta$ = -0.0, CI = -0.01 to 0.01, P = 0.59) or size (width $\beta$ = 0.01, CI = -0.06 to 0.06, P = 0.92; length $\beta$ = 0.07, CI = -0.03 to 0.18, P = 0.17). 
+
 ```{r egg-mods, echo = FALSE, warning = FALSE, message = FALSE}
 d_egg$f_age <- as.factor(d_egg$f_age)
 d_egg$f_age <- relevel(d_egg$f_age, ref ="SY")
@@ -600,13 +603,14 @@ add_footnote(mod_tabs, c("asymmetry: marginal R^2^ = 0.01, conditional R^2^ = 0.
   #   geom_jitter(alpha = 0.6, width = 0.2) +
   #   geom_boxplot(alpha = 0.5, fill = "coral3", outlier.shape = NA)
   
-  mc1 <- lmer(av_A ~ clutch + (1|fband), data = dclutch)
-  mc2 <- lmer(av_E ~ clutch + (1|fband), data = dclutch)
-  mc3 <- lmer(av_wid ~ clutch + (1|fband), data = dclutch)
-  mc4 <- lmer(av_len ~ clutch + (1|fband), data = dclutch)
+  mc1 <- lmer(av_A ~ scale(clutch) + (1|fband), data = dclutch)
+  mc2 <- lmer(av_E ~ scale(clutch) + (1|fband), data = dclutch)
+  mc3 <- lmer(av_wid ~ scale(clutch) + (1|fband), data = dclutch)
+  mc4 <- lmer(av_len ~ scale(clutch) + (1|fband), data = dclutch)
 
 ```
 
+\newpage
 ## Age related changes and overwinter return
 
 The difference in egg size with female age could arise from longitudinal increases in egg size as females age  or from selective survival of females that lay larger eggs. Among females that were measured as both first time breeders and in at least one subsequent year, asymmetry did not change longitudinally, but ellipticity decreased slightly (Figure \@ref(fig:age-change) A-B; paired t-test for asymmetry: t = -0.34, df = 28, P = 0.73; ellipticity: t = -2.3, df = 28, P = 0.03). Both the width and length of eggs increased significantly from a female's first to second breeding year (Figure \@ref(fig:age-change) C-D; paired t-test for width: t = 5.31, df = 28, P < 0.001; length: t = 2.25, df = 28, P = 0.03).
@@ -804,6 +808,8 @@ Between and within-individual differences in egg characteristic correlations are
 
 Despite finding substantial variation in egg shape between females, we found little evidence that these differences were driven by overall morphology or directly related to any important fitness proxies, other than adult female survival. While a great deal is known about egg shape variation between species [@stoddard2017; @montgomerie2021], understanding what generates and maintains variation in egg shape within species is largely an open question. Given the high heritability reported for egg size in many species [@christians2002] and the correlations that we found between egg shape and size between-individuals, it is likely that variation in egg shape is partially genetically determined. It also seems likely that early life developmental conditions might play a strong role in determining egg size and shape throughout the lifetime. Potti [-@potti1999] found that pied flycatcher (*Ficedula hypoleuca*) egg volume as an adult was related to maternal egg volume, but after controlling for maternal effects, early life body condition had a strong effect that persisted throughout the lifetime. This mechanism also suggests that, at least in some cases, associations between egg characteristics and female condition or performance might arise from a shared cause (early life conditions) rather than from a direct consequence of variation in egg shape or size. 
 
+ADD OR EXPAND PARAGRAPH ON WHAT THE CORRELATIONS BETWEEN EGG SHAPE/SIZE AND SURVIVAL MIGHT MEAN FOR FEMALE BIOLOGY. 
+
 One question that our study cannot address is whether tree swallows have an unusually high or a typical amount of intra-specific variation in egg shape. It seems likely that species that experience strong selection for optimal egg shapes would have less between and within-individual variation in the shape of eggs produced as a consequence of consistent selection. For example, if the egg shape of the common murre is optimized to promote stability on a rocky ledge, we might expect very strong selection for the optimal shape, resulting in little variation between individuals [@birkhead2018]. In contrast, tree swallows nest in cavities, produce variable clutch sizes, and have a widespread geographic distribution that results in highly variable climate conditions and resource availability during breeding [@winkler2020; @zimmer2020]. Given this life history, there may be relaxed selection on egg shape and the variation we observed may result as a by-product of selection on more consequential traits, such as morphology or yolk deposition [@ardia2006]. Our study focused on only a single population, but because clutch size and environment vary predictably across the breeding range [@winkler2014; @zimmer2020], subsequent work comparing egg characteristics across different populations would be illuminating.
 
 Large-scale comparative studies that directly address the amount of within species variation in egg shape--in addition to species mean values--also have the potential to demonstrate how selection for optimal egg shape differs across clades. Understanding which species have more or less variable egg shapes would help to clarify why the factors that explain variation in egg shape differ in their explanatory power at different scales [@stoddard2017; @stoddard2019; @montgomerie2021] and why different factors are sometimes correlated with egg shape in particular groups of birds [@birkhead2019]. We suggest that comparative studies should report the values measured from individual eggs in data archives [as in @montgomerie2021] along with information on location of the original nest and female identity (i.e., if multiple eggs are measured from the same clutch photograph that should be indicated) rather than just species means values to make these analyses possible. 
@@ -812,7 +818,7 @@ While current databases do include many egg measurements from some common specie
 
 ## CONCLUSION
 
-The past few years have seen huge advances in our understanding of how and why eggs vary in shape across all birds [@stoddard2017; @montgomerie2021]. However, an understanding of how and why egg shape varies within-species and within-individuals has lagged behind. We demonstrate enormous variation in egg shape in tree swallows and suggest that more work is needed to understand whether this pattern is typical and the extent to which intra-specific egg shape variation itself differs between species. These studies are important for two reasons. First, there are interesting biological questions to address in their own right within-species about the consequences and causes of egg shape variation. Second, understanding the mechanisms that generate variation in egg shape between-individuals and how these mechanisms translate across scales of organization has the potential to clarify when large-scale comparative studies can or cannot adequately explain egg shape variation. A complete understanding of the diversity of eggs will include multi-scale explanations from individuals to all birds.
+The past few years have seen huge advances in our understanding of how and why eggs vary in shape across all birds [@stoddard2017; @montgomerie2021]. However, an understanding of how and why egg shape varies within species and within individuals has lagged behind. We demonstrate enormous variation in egg shape in tree swallows and suggest that more work is needed to understand whether this pattern is typical and the extent to which intra-specific egg shape variation itself differs between species. These studies are important for two reasons. First, there are interesting biological questions to address in their own right within species about the consequences and causes of egg shape variation. Second, understanding the mechanisms that generate variation in egg shape between individuals and how these mechanisms translate across scales of organization has the potential to clarify when large-scale comparative studies can or cannot adequately explain egg shape variation. A complete understanding of the diversity of eggs will include multi-scale explanations from individuals to all birds.
 
 # ETHICAL NOTE
 
@@ -820,7 +826,7 @@ All of the procedures described were approved by the Cornell University Institut
 
 # ACKNOWLEDGMENTS
 
-We would like to thank the field technicians, graduate students, and postdoctoral scientists who helped with field work during the years of this study including Bashir Ali, Paige Becker, Raquel Castromonte, Navya Chamiraju, David Chang van Oordt, KaiXin Chen, Nicholas Faraco-Hadlock, Allison Injaian, Zapporah Ellis, Ginny Halterman, Jenn Houtz, Sungmin Ko, Amanda Lazar, Alex Lee-Papastravos, Sabrina McNew, Colleen Miller, Jabril Mohammed, Natalie Morris, Yusol Park, Monique Pipkin, Olivia Rooney, Jenny Uehling, Bella Somoza, and Cedric Zimmer.
+We would like to thank the field technicians, graduate students, and postdoctoral scientists who helped with field work during the years of this study including Bashir Ali, Paige Becker, Raquel Castromonte, Navya Chamiraju, David Chang van Oordt, KaiXin Chen, Nicholas Faraco-Hadlock, Zapporah Ellis, Ginny Halterman, Jenn Houtz, Sungmin Ko, Amanda Lazar, Alex Lee-Papastravos, Sabrina McNew, Colleen Miller, Jabril Mohammed, Natalie Morris, Yusol Park, Monique Pipkin, Olivia Rooney, Bella Somoza, and Cedric Zimmer.
 
 # FUNDING
 
@@ -828,7 +834,7 @@ Research funding was provided by a USDA Hatch Grant, DARPA YFA D17AP00033, and N
 
 # AUTHOR CONTRIBUTION STATEMENT
 
-CCT and TAR conceived the study and collected the field data. CCT measured the photographs, analyzed data, and drafted the manuscript. MNV contributed to funding for the project. All authors provided feedback and editing on the manuscript.
+CCT and TAR conceived the study. CCT, TAR, JJU, and ASI collected the field data. CCT measured the photographs, analyzed data, and drafted the manuscript. MNV contributed to funding for the project. All authors provided feedback and editing on the manuscript.
 
 # DATA AVAILABILITY STATEMENT
 
