@@ -87,7 +87,7 @@ If there is an optimal egg shape for different species [@andersson1978; @barta19
 
 Because phenotypic variation is hierarchically organized [@westneat2015], the same principle of scale-specific inference can be applied to understanding variation in egg shape between populations of a species, individuals within a population, or repeated production of eggs within an individual female. Inferences derived from higher levels can always be subject to Simpson's paradox or ecological fallacies. Recent comparative studies largely ignore the possibility of different drivers of egg shape variation at these levels by measuring only a small number of eggs per species and by conducting analyses on only a single average value for each species (e.g., Stoddard et al. 2017 and Montgomerie et al. 2021 measured a median of 8 and 3 eggs per species, respectively). There is no guarantee that relationships observed at broader levels (e.g., family level or across all birds) will explain variation between populations or individuals of the same species. A complete understanding of egg shape variation will require a scale-dependent framework [@agrawal2020] that makes predictions that explicitly consider the scale, based on an understanding of the mechanism(s) involved. Analyses at these different levels are complementary, rather than contradictory [@stoddard2019], but at present, very few studies provide even descriptive data on correlates of variation in egg shape within species or individuals [but see @adamou2018; @banbura2018].
 
-In contrast to egg shape, many studies have explored between and within individual variation in egg size, mass, or composition as it relates to maternal effects and nestling outcomes [reviewed in @christians2002; @groothuis2019]. Christians [-@christians2002] comprehensively reviewed studies of individual variation in egg mass and found that the largest egg in a population is typically 1.5 to 2 times larger than the smallest egg. This enormous variation in egg size tends to be both highly repeatable (generally above r = 0.6) and heritable [generally h^2^ > 0.5, @christians2002]. Some individual studies demonstrate that egg size changes with dietary supplementation [@ramsay1997; @hogstedt1981], ambient temperature [@nager1992; @whittingham2007], and female age [@croxall1992; @hipfner1997], but the results of these studies are decidedly mixed and even in significant cases, the amount of variation in egg size explained is typically small [no more than 10-15%, @christians2002]. Even female mass and size are inconsistently related to egg size variation in these studies [@christians2002], despite the fact that these are perhaps the most unambiguous predictors of egg size and shape between species [@stoddard2017; @montgomerie2021]. While egg mass often predicts early life mass and growth of nestlings, it is less clear whether there are long term fitness consequences of initial egg mass [@christians2002; @potti1999]. Given these patterns, it is possible that much of the variation in intra-specific egg shape might be explained by consistent differences in egg mass, but few studies present the data to address this question and the causes of differences in egg mass themselves remain unclear [@christians2002]. 
+In contrast to egg shape, many studies have explored between and within individual variation in egg size, mass, or composition as it relates to maternal effects and nestling outcomes [reviewed in @christians2002; @groothuis2019; @krist2011]. Christians [-@christians2002] comprehensively reviewed studies of individual variation in egg mass and found that the largest egg in a population is typically 1.5 to 2 times larger than the smallest egg. This enormous variation in egg size tends to be both highly repeatable (generally above r = 0.6) and heritable [generally h^2^ > 0.5, @christians2002]. Some individual studies demonstrate that egg size changes with dietary supplementation [@ramsay1997; @hogstedt1981], ambient temperature [@nager1992; @whittingham2007], and female age [@croxall1992; @hipfner1997], but the results of these studies are decidedly mixed and even in significant cases, the amount of variation in egg size explained is typically small [no more than 10-15%, @christians2002]. Even female mass and size are inconsistently related to egg size variation in these studies [@christians2002], despite the fact that these are perhaps the most unambiguous predictors of egg size and shape between species [@stoddard2017; @montgomerie2021]. While egg mass often predicts early life mass and growth of nestlings, it is less clear whether there are long term fitness consequences of initial egg mass [@christians2002; @potti1999]. Given these patterns, it is possible that much of the variation in intra-specific egg shape might be explained by consistent differences in egg mass, but few studies present the data to address this question and the causes of differences in egg mass themselves remain unclear [@christians2002]. 
 
 To begin to understand variation in egg shape at the between and within individual level, we studied variation in the shape and size of eggs produced by tree swallows (*Tachycineta bicolor*) breeding over three years. Tree swallows are a migratory cavity nesting species with a distribution spanning most of North America. They typically produce clutches containing 4-7 eggs [@winkler2020bna]. While we aren't aware of prior studies directly measuring egg shape, a number of previous studies in different populations of tree swallows have documented substantial variation in egg mass [@ardia2006; @wiggins1990; @bitton2006] or yolk characteristics [@whittingham2002]. These differences are sometimes attributed to variation in temperature, food availability, or body condition [@ardia2006; @whittingham2007; @pellerin2016], but also appear to be predominantly attributable to female identity [@wiggins1990]. 
 
@@ -187,6 +187,8 @@ When comparing average egg characteristics between females, the four measures of
   knitr::kable(eg_cor, align = 'c', format = "simple",
                caption = "Between-individual correlation for each pair of egg characteristics based on the average of each characteristic for each female. Pearson correlation is shown below the diagonal and P-value above the diagonal.")
 ```
+
+\newpage
 
 ```{r egg-within, echo = FALSE, message = FALSE, warning = FALSE, out.width = 475, fig.cap = "Panel A shows the distribution of Pearson correlation coefficients for within-individual correlations between each pair of egg characteristics. Dashed vertical line indicates no correlation. Blue circle is the mean and blue line denotes 1 SD above and below the mean. Panel B shows the R-squared values for the association between each pair of egg characteristics for between-individual (x-axis) and within-individual (y-axis) comparisons. Diagonal dashed line illustrates a perfect correspondence between the two axes."}
 
@@ -375,7 +377,7 @@ When comparing average egg characteristics between females, the four measures of
     rb_wid <- rptGaussian(wid_IJ ~ 1 + (1|fband), grname = "fband", data = egg_wide2, nboot = 500)
 ```
 
-Despite the enormous variation overall, individual females had remarkably high repeatability in the shape and size of eggs they produced. When considering all eggs within a clutch, both shape and size were highly repeatable (asymmetry r = `r round(rw_asymmetry$R[1], 2)`, CI = `r round(rw_asymmetry$CI_emp[1], 2)` to `r round(rw_asymmetry$CI_emp[2], 2)`, P < 0.001; ellipticity r = `r round(rw_ellip$R[1], 2)`, CI = `r round(rw_ellip$CI_emp[1], 2)` to `r round(rw_ellip$CI_emp[2], 2)`, P < 0.001; egg length r = `r round(rw_len$R[1], 2)`, CI = `r round(rw_len$CI_emp[1], 2)` to `r round(rw_len$CI_emp[2], 2)`, P < 0.001; egg width r = `r round(rw_wid$R[1], 2)`, CI = `r round(rw_wid$CI_emp[1], 2)` to `r round(rw_wid$CI_emp[2], 2)`, P < 0.001). Repeatability was even higher when considering only the average egg size and shape in different years for females that returned to breed in multiple years (Figure \@ref(fig:btwn-year) A-D; asymmetry r = `r round(rb_asymmetry$R[1], 2)`, CI = `r round(rb_asymmetry$CI_emp[1], 2)` to `r round(rb_asymmetry$CI_emp[2], 2)`, P < 0.001; ellipticity r = `r round(rb_ellip$R[1], 2)`, CI = `r round(rb_ellip$CI_emp[1], 2)` to `r round(rb_ellip$CI_emp[2], 2)`, P < 0.001; egg length r = `r round(rb_len$R[1], 2)`, CI = `r round(rb_len$CI_emp[1], 2)` to `r round(rb_len$CI_emp[2], 2)`, P < 0.001; egg width r = `r round(rb_wid$R[1], 2)`, CI = `r round(rb_wid$CI_emp[1], 2)` to `r round(rb_wid$CI_emp[2], 2)`, P < 0.001).
+Despite the enormous variation overall, individual females had remarkably high repeatability in the shape and size of eggs they produced. When considering all eggs within a clutch, both shape and size were highly repeatable (asymmetry r = `r round(rw_asymmetry$R[1], 2)`, CI = `r round(rw_asymmetry$CI_emp[1], 2)` to `r round(rw_asymmetry$CI_emp[2], 2)`, P < 0.001; ellipticity r = `r round(rw_ellip$R[1], 2)`, CI = `r round(rw_ellip$CI_emp[1], 2)` to `r round(rw_ellip$CI_emp[2], 2)`, P < 0.001; egg length r = `r round(rw_len$R[1], 2)`, CI = `r round(rw_len$CI_emp[1], 2)` to `r round(rw_len$CI_emp[2], 2)`, P < 0.001; egg width r = `r round(rw_wid$R[1], 2)`, CI = `r round(rw_wid$CI_emp[1], 2)` to `r round(rw_wid$CI_emp[2], 2)`, P < 0.001). Repeatability was even higher when considering only the average egg size and shape in different years for females that returned to breed in multiple years (Figure \@ref(fig:btwn-year) A-D; asymmetry r = `r round(rb_asymmetry$R[1], 2)`, CI = `r round(rb_asymmetry$CI_emp[1], 2)` to `r round(rb_asymmetry$CI_emp[2], 2)`, P < 0.001; ellipticity r = `r round(rb_ellip$R[1], 2)`, CI = `r round(rb_ellip$CI_emp[1], 2)` to `r round(rb_ellip$CI_emp[2], 2)`, P < 0.001; egg width r = `r round(rb_wid$R[1], 2)`, CI = `r round(rb_wid$CI_emp[1], 2)` to `r round(rb_wid$CI_emp[2], 2)`, P < 0.001; egg length r = `r round(rb_len$R[1], 2)`, CI = `r round(rb_len$CI_emp[1], 2)` to `r round(rb_len$CI_emp[2], 2)`, P < 0.001).
 
 ```{r btwn-year, echo = FALSE, message = FALSE, warning = FALSE, fig.height = 2, fig.width = 8, fig.cap = "Average asymmetry (A), ellipticity (B), egg width (C), and egg length (D) for females that had egg shape measurements in consecutive years."}
 
@@ -610,12 +612,12 @@ add_footnote(mod_tabs, c("asymmetry: marginal R^2^ = 0.01, conditional R^2^ = 0.
 
 ```
 
-\newpage
+
 ## Age related changes and overwinter return
 
-The difference in egg size with female age could arise from longitudinal increases in egg size as females age  or from selective survival of females that lay larger eggs. Among females that were measured as both first time breeders and in at least one subsequent year, asymmetry did not change longitudinally, but ellipticity decreased slightly (Figure \@ref(fig:age-change) A-B; paired t-test for asymmetry: t = -0.34, df = 28, P = 0.73; ellipticity: t = -2.3, df = 28, P = 0.03). Both the width and length of eggs increased significantly from a female's first to second breeding year (Figure \@ref(fig:age-change) C-D; paired t-test for width: t = 5.31, df = 28, P < 0.001; length: t = 2.25, df = 28, P = 0.03).
+The difference in egg size with female age could arise from longitudinal increases in egg size as females age  or from selective survival of females that lay larger eggs. Among females that were measured as both first time breeders and as returning breeders, asymmetry did not change longitudinally, but ellipticity decreased slightly (Figure \@ref(fig:age-change) A-B; paired t-test for asymmetry: t = -0.34, df = 28, P = 0.73; ellipticity: t = -2.3, df = 28, P = 0.03). Both the width and length of eggs increased significantly from a female's first to second breeding year (Figure \@ref(fig:age-change) C-D; paired t-test for width: t = 5.31, df = 28, P < 0.001; length: t = 2.25, df = 28, P = 0.03).
 
-```{r age-change, echo = FALSE, message = FALSE, warning = FALSE, fig.height = 3.3, fig.width = 8.5, fig.cap = "Change in average egg shape (A, B) and size (C, D) for females that were observed as one year old first time breeders and again in the subsequent year. Boxes show the mean and interquartile range for each age group. Lines connect observations from the same individual."}
+```{r age-change, echo = FALSE, message = FALSE, warning = FALSE, fig.height = 3.3, fig.width = 8.5, fig.cap = "Change in average egg shape (A, B) and size (C, D) for females that were observed as one year old first time breeders and again in the subsequent year. Boxes show the mean and interquartile range for each age group. Lines connect observations from the same individual. Asterisks denote significant difference between groups."}
 
 d_age <- d_egg %>%
   filter(f_age == "SY" | f_age == "ASY") %>%
@@ -633,7 +635,7 @@ d_age$f_age <- as.factor(d_age$f_age)
 d_age$f_age <- relevel(d_age$f_age, ref = "SY")
 a1 <- ggplot(data = d_age, mapping = aes(x = f_age, y = A_mu)) +
   geom_boxplot(alpha = 0.8, width = 0.2, outlier.shape = NA, fill = "coral3") +
-  geom_line(aes(group = fband), color = "slateblue") +
+  geom_line(aes(group = fband), color = "slateblue", alpha = 0.7) +
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
   xlab("Female age") + ylab("Average egg asymmetry") +
@@ -643,33 +645,36 @@ a1 <- ggplot(data = d_age, mapping = aes(x = f_age, y = A_mu)) +
 
 a2 <- ggplot(data = d_age, mapping = aes(x = f_age, y = E_mu)) +
   geom_boxplot(alpha = 0.8, width = 0.2, outlier.shape = NA, fill = "coral3") +
-  geom_line(aes(group = fband), color = "slateblue") +
+  geom_line(aes(group = fband), color = "slateblue", alpha = 0.7) +
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
   xlab("Female age") + ylab("Average egg ellipticity") +
   theme(axis.title = element_text(size = 12), axis.text = element_text(size = 10)) +
   annotate(geom = "text", label = "B", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 4) +
-  scale_x_discrete(labels = c("SY" = "1", "ASY" = "2"))
+  scale_x_discrete(labels = c("SY" = "1", "ASY" = "2")) +
+  annotate(geom = "text", x = 1.5, y = 0.6, label = "*", size = 7)
 
 a3 <- ggplot(data = d_age, mapping = aes(x = f_age, y = wid_mu)) +
   geom_boxplot(alpha = 0.8, width = 0.2, outlier.shape = NA, fill = "coral3") +
-  geom_line(aes(group = fband), color = "slateblue") +
+  geom_line(aes(group = fband), color = "slateblue", alpha = 0.7) +
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
   xlab("Female age") + ylab("Average egg width (mm)") +
   theme(axis.title = element_text(size = 12), axis.text = element_text(size = 10)) +
   annotate(geom = "text", label = "C", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 4) +
-  scale_x_discrete(labels = c("SY" = "1", "ASY" = "2"))
+  scale_x_discrete(labels = c("SY" = "1", "ASY" = "2")) +
+  annotate(geom = "text", x = 1.5, y = 15.2, label = "*", size = 7)
 
 a4 <- ggplot(data = d_age, mapping = aes(x = f_age, y = len_mu)) +
   geom_boxplot(alpha = 0.8, width = 0.2, outlier.shape = NA, fill = "coral3") +
-  geom_line(aes(group = fband), color = "slateblue") +
+  geom_line(aes(group = fband), color = "slateblue", alpha = 0.7) +
   theme_bw() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
   xlab("Female age") + ylab("Average egg length (mm)") +
   theme(axis.title = element_text(size = 12), axis.text = element_text(size = 10)) +
   annotate(geom = "text", label = "D", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 4) +
-  scale_x_discrete(labels = c("SY" = "1", "ASY" = "2"))
+  scale_x_discrete(labels = c("SY" = "1", "ASY" = "2")) +
+  annotate(geom = "text", x = 1.5, y = 21.8, label = "*", size = 7)
 
 ggpubr::ggarrange(a1, a2, a3, a4, nrow = 1)
 
@@ -685,7 +690,7 @@ d_age3 <- d_age %>%
 
 When comparing the average egg characteristics in year 1 between females that did or did not return to our site in year 2, females with more asymmetric eggs were more likely to return the following year (Figure \@ref(fig:surv-pred) A; Welch two sample t-test: t = 2.67, df = 152, P = 0.008). There was no difference in egg ellipticity between females that did or did not return the following year (Figure \@ref(fig:surv-pred) B; t-test: t = 1.01, df = 160, P = 0.31). Females that laid wider and longer eggs in year 1 were more likely to return in year 2 (Figure \@ref(fig:surv-pred) C-D; width: t = 2.60, df = 161, P = 0.01; length: t = 2.90, t = 155, P = 0.004).
 
-```{r surv-pred, echo = FALSE, message = FALSE, warning = FALSE, fig.height = 3.3, fig.width = 8.5, fig.cap = "Comparison of average egg shape (A, B) and size (C, D) for females that did or did not return to breed in the following year. Boxes show the mean and interquartile range for each group. Points show average egg characteristics for each female."}
+```{r surv-pred, echo = FALSE, message = FALSE, warning = FALSE, fig.height = 3.3, fig.width = 8.5, fig.cap = "Comparison of average egg shape (A, B) and size (C, D) for females that did or did not return to breed in the following year. Boxes show the mean and interquartile range for each group. Points show average egg characteristics for each female. Asterisks denote significant differences between groups."}
 # wrangle data
           d_egg2 <- d_egg[, c("unit_box", "year", "A", "E", "len_IJ", "wid_IJ", "fband")]
           surv <- d_egg2 %>%
@@ -723,7 +728,8 @@ When comparing the average egg characteristics in year 1 between females that di
     ylab("Average egg asymmetry") +
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
     theme(axis.title = element_text(size = 12), axis.text = element_text(size = 10)) +
-    annotate(geom = "text", label = "A", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 4)
+    annotate(geom = "text", label = "A", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 4) +
+  annotate(geom = "text", x = 1.5, y = 0.31, label = "*", size = 7)
     
   p2 <- ggplot(data = surv, mapping = aes(x = Returned, y = E)) +
     geom_boxplot(alpha = 0.5, width = 0.5, outlier.shape = NA, fill = "slateblue") + 
@@ -741,16 +747,18 @@ When comparing the average egg characteristics in year 1 between females that di
     ylab("Average egg width (mm)") +
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
     theme(axis.title = element_text(size = 12), axis.text = element_text(size = 10)) +
-    annotate(geom = "text", label = "C", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 4)
+    annotate(geom = "text", label = "C", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 4) +
+  annotate(geom = "text", x = 1.5, y = 15.4, label = "*", size = 7)
   
-  p4 <- ggplot(data = surv, mapping = aes(x = Returned, y = wid_IJ)) +
+  p4 <- ggplot(data = surv, mapping = aes(x = Returned, y = len_IJ)) +
     geom_boxplot(alpha = 0.5, width = 0.5, outlier.shape = NA, fill = "slateblue") + 
     geom_jitter(alpha = 0.6, width = 0.15, size = 0.6) +
     theme_bw() +
     ylab("Average egg length (mm)") +
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
     theme(axis.title = element_text(size = 12), axis.text = element_text(size = 10)) +
-    annotate(geom = "text", label = "D", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 4)
+    annotate(geom = "text", label = "D", x = -Inf, y = Inf, hjust = -0.5, vjust = 1.5, size = 4) +
+  annotate(geom = "text", x = 1.5, y = 22, label = "*", size = 7)
   
   ggpubr::ggarrange(p1, p2, p3, p4, nrow = 1)
   
@@ -804,11 +812,11 @@ Surprisingly, we found that variation in the shape of eggs from a single populat
 
 Perhaps the most important conclusion of our study is that explanations for variation in egg shape will likely differ subtly at each level of organization from within-individuals to between species. In a parallel to Montgomerie et al.'s [-@montgomerie2021] suggestion that family level variation in egg shape often differs from higher order patterns, we found that the association of egg characteristics between females was quite different from that within females (Figure \@ref(fig:egg-within)). When measuring eggs laid by the same female, there was a strong and consistent negative association between ellipticity and width, such that laying wider eggs resulted in lower ellipticity (and vice versa). While this association was present between-females, it was much weaker and instead there was a strong positive association between ellipticity and length not observed within individuals. 
 
-Between and within-individual differences in egg characteristic correlations are challenging to parse, but they suggest different mechanisms operating at different levels. Within females, there is remarkably high stability in each characteristic, so an increase in width necessarily reduces ellipticity; between-females, there is more substantial variation in both ellipticity and length, such that the same negative association is much weaker. Whether the associations between egg traits at different levels arise from pure physical constraints, resource allocation trade-offs, or selection for species level specialization is an open question and one that requires a multi-level approach [@agrawal2020] and inferences made from evidence at one level are not necessarily informative when applied to other levels. Explicitly defining the proposed mechanism and which levels it is expected to operate at has the potential to help reconcile apparently contradictory patterns at different levels [@stoddard2019; @birkhead2019].
+Between and within-individual differences in egg characteristic correlations are challenging to parse, but they suggest different mechanisms operating at different levels. Within females, there is remarkably high stability in each characteristic, so an increase in width necessarily reduces ellipticity; between-females, there is more substantial variation in both ellipticity and length, such that the same negative association is much weaker. Whether the associations between egg traits at different levels arise from pure physical constraints, resource allocation trade-offs, or selection for species level specialization is an open question and one that requires a multi-level approach [@agrawal2020]. Inferences made from evidence at one level are not necessarily informative when applied to other levels. Explicitly defining the proposed mechanism and which levels it is expected to operate at has the potential to help reconcile apparently contradictory patterns at different levels [@stoddard2019; @birkhead2019].
 
 Despite finding substantial variation in egg shape between females, we found little evidence that these differences were driven by overall morphology or directly related to any important fitness proxies, other than adult female survival. While a great deal is known about egg shape variation between species [@stoddard2017; @montgomerie2021], understanding what generates and maintains variation in egg shape within species is largely an open question. Given the high heritability reported for egg size in many species [@christians2002] and the correlations that we found between egg shape and size between-individuals, it is likely that variation in egg shape is partially genetically determined. It is worth noting that additive genetics could contribute to egg shape directly or to morphological features, such as pelvis shape [@shatkovska2018] that subsequently influence egg shape. It also seems likely that early life developmental conditions might play a strong role in determining egg size and shape throughout the lifetime. Potti [-@potti1999] found that pied flycatcher (*Ficedula hypoleuca*) egg volume as an adult was related to volume of the egg they had hatched from, but after controlling for maternal effects, early life body condition also had a strong effect on the volume of subsequent eggs and this effect persisted throughout the lifetime. This mechanism also suggests that, at least in some cases, associations between egg characteristics and female condition or performance might arise from a shared cause (early life conditions) rather than from a direct consequence of variation in initial egg shape or size. 
 
-ADD OR EXPAND PARAGRAPH ON WHAT THE CORRELATIONS BETWEEN EGG SHAPE/SIZE AND SURVIVAL MIGHT MEAN FOR FEMALE BIOLOGY. 
+In a meta-analysis of 283 studies that examined variation in egg size within species, Krist [-@krist2011] found that egg size is consistently related to hatching success, chick survival, growth rate, condition, and morphology. These effects are strongest early in life, but sometimes persist long after chicks have hatched [@krist2011]. Therefore, even though we found no clear link between egg size and nestlings in our study, it is plausible that the variation in egg size that we detected could have important consequences for fitness under some conditions (e.g., when food is more limited). Prior studies of tree swallows have suggested that egg size has consequences for nestlings [@ardia2006; @bitton2006] and studies in a variety of species demonstrate that female quality or environmental conditions can generate variation in egg size [@kvalnes2013; @kouwenberg2013]. This pattern might also explain the associations that we saw between egg size, survival, and age among females. Variation in individual quality is known to be an important driver of reproductive success in female tree swallows and older females are typically in better body condition and produce more offspring [@winkler2020]. In this case, the association between overwinter survival and egg size might arise because females that are higher quality or in better current condition are able to invest more in large eggs while also maintaining high survival prospects. Because of the within-individual correlations between egg shape and size, changes in overall investment (egg size) between years might have caused the smaller, but still significant, changes in shape that we detected between years. Alternatively, these correlations may be unrelated to reproductive investment *per se* and instead arise as the product of some other constraint that differs as females age, such as changes in abdominal musculature.
 
 One question that our study cannot address is whether tree swallows have an unusually high or a typical amount of intra-specific variation in egg shape. It seems likely that species that experience strong selection for optimal egg shapes would have less between and within-individual variation in the shape of eggs produced as a consequence of consistent selection. For example, if the egg shape of the common murre is optimized to promote stability on a rocky ledge, we might expect very strong selection for the optimal shape, resulting in little variation between individuals [@birkhead2018]. In contrast, tree swallows nest in cavities, produce variable clutch sizes, and have a widespread geographic distribution that results in highly variable climate conditions and resource availability during breeding [@winkler2020; @zimmer2020]. Given this life history, there may be relaxed selection on egg shape and the variation we observed may result as a by-product of selection on more consequential traits, such as morphology or yolk deposition [@ardia2006]. Our study focused on only a single population, but because clutch size and environment vary predictably across the breeding range [@winkler2014; @zimmer2020], subsequent work comparing egg characteristics across different populations would be illuminating.
 
